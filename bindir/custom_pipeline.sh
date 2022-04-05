@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -x;
 ## rsid	CHR	BP A1	A2	freq	slope(beta)	slope_se(standard error)	pval_nominal(pvalue)	n z
-bindir="/mnt/d/custom/bindir"
-dbdir="/mnt/d/custom/dbs"
+bindir="/home/yagoubali/Projects/deployment/spgwas-custom/bindir"
+dbdir="/media/yagoubali/bioinfo2/pgwas/custom_pipeline/dbdir"
 gwas_summary=$1
 output=$(basename ${gwas_summary})
 outdir=$2
@@ -11,6 +11,8 @@ population=$3
 
 #### Step 1
 #### perfom clumping
+mkdir -p ${outdir}/step1_clump
+clump_output="${outdir}/step1_clump"
 clump_p1=$4;            ## P-value threshold for a SNP to be included as an index SNP. By default, must have p-value no larger than 0.0001
 clump_p2=$5;            ## Secondary significance threshold for clumped SNPs
 clump_r2=$6;            ## LD threshold for clumping
@@ -54,21 +56,24 @@ ${bindir}/plink \
     --clump-field pval_nominal \
     ${allow_overlap_cmd} \
     ${gene_region_cmd} \
-    --out ${outdir}/${output}
-    sed -i $'s/^  *//' ${outdir}/${output}.clumped  ## Remove space at the begining of each line
-    sed -i 's/  */\t/g' ${outdir}/${output}.clumped ## spaces to tab
+    --out ${clump_output}/${output}
+    sed -i $'s/^  *//' ${clump_output}/${output}.clumped  ## Remove space at the begining of each line
+    sed -i 's/  */\t/g' ${clump_output}/${output}.clumped ## spaces to tab
 
 
 ####### Step 2 Selecting indepent SNPs
 touch ${outdir}/SNPs.clump
-cut -f3 ${outdir}/${output}.clumped | sed -e '1d' > ${outdir}/SNPs.clump
+cut -f3 ${clump_output}/${output}.clumped | sed -e '1d' > ${clump_output}/SNPs.clump
 
 awk 'BEGIN{OFS="\t"}
 (FNR==NR)  {a[$1]=$1; next}
 (FNR==1 && NR!=FNR){print $0}
-($1 in a ) {print $0 }'  ${outdir}/SNPs.clump ${gwas_summary} > ${outdir}/input1.txt
+($1 in a ) {print $0 }'  ${clump_output}/SNPs.clump ${gwas_summary} > ${outdir}/input1.txt
 
 ###### perfom Fine mapping on input1 using coloc
+mkdir -p ${outdir}/step2_colocFinemapp
+finemap_outdir="${outdir}/step2_colocFinemapp"
+
 type=${12} ##{"quant", "cc"} #quantification or case-control
 s=${13} #proportion between case and control (between 0 and 1)
 p1=${14} #p1: prior probability a SNP is associated with the trait 1, default 1e-4
@@ -78,6 +83,8 @@ ${p1}   \
 ${type}  \
 ${s}
 
+mv  ${outdir}/finemapping.results  ${finemap_outdir}/
+mv  ${outdir}/finemapping.txt     ${finemap_outdir}/
 
 
 
@@ -87,6 +94,10 @@ ${s}
 
 ##------------------------------------>
 #### rsid	CHR	BP	A1	A2	freq	slope	slope_se	pval_nominal	n
+mkdir -p ${outdir}/step3_pascal
+pascal_outdir="${outdir}/step3_pascal"
+touch ${pascal_outdir}/results.log
+
 read -r line < "${outdir}/input1.txt"     ## read first line from file into 'line'
 oldIFS="$IFS"                                   ## save current Internal Field Separator (IFS)
 IFS=$' '                                        ## set IFS to word-split on '\t'
@@ -165,7 +176,7 @@ bash Pascal --pval=${outdir}/Pascal.input \
         --mergedistance=$mergedistance \
         --mafcutoff=$mafcutoff \
         --genesetfile=$genesetfile \
-        --outdir=${outdir} &> ${outdir}/results.log
+        --outdir=${pascal_outdir} &> ${pascal_outdir}/results.log
 else
     bash Pascal --pval=${outdir}/Pascal.input \
                 --customdir=${dbdir}/custom-1000genomes  \
@@ -179,46 +190,47 @@ else
                 --mafcutoff=$mafcutoff \
                 --genesetfile=$genesetfile \
                 --chr=$chr \
-                --outdir=${outdir} &> ${outdir}/error.log
+                --outdir=${pascal_outdir} &> ${pascal_outdir}/error.log
 fi
 ### Filter genescores results
-genescores_file=$(ls ${outdir}| grep ${genescoring}.genescores*);
-if [[ -f "${outdir}/${genescores_file}" ]]; then
+genescores_file=$(ls ${pascal_outdir}| grep ${genescoring}.genescores*);
+if [[ -f "${pascal_outdir}/${genescores_file}" ]]; then
     genescores_output=$(echo ${genescores_file}| sed -e 's/.txt/_filtered.txt/');
-    sed -i 's/,/./g' ${outdir}/${genescores_file};
-    awk -v pvalue=$pvalue_cutoff '{if(NR==1) print $0; if (($8)<=pvalue) print $0}' ${outdir}/${genescores_file} > ${outdir}/${genescores_output}
+    sed -i 's/,/./g' ${pascal_outdir}/${genescores_file};
+    awk -v pvalue=$pvalue_cutoff '{if(NR==1) print $0; if (($8)<=pvalue) print $0}' ${pascal_outdir}/${genescores_file} > ${pascal_outdir}/${genescores_output}
 else
-    touch ${outdir}/no_genescores_output_filtered.txt;
+    touch ${pascal_outdir}/no_genescores_output_filtered.txt;
 fi
 
 
 
 if [[ "$runpathway" == "on" ]]; then
   ## prepare Output files name.
-  fusion_file=$(ls ${outdir}| grep ${genescoring}.fusion.genescores*);
-  if [[ -f "${outdir}/${fusion_file}" ]]; then
+  fusion_file=$(ls ${pascal_outdir}| grep ${genescoring}.fusion.genescores*);
+  if [[ -f "${pascal_outdir}/${fusion_file}" ]]; then
       fusion_output=$(echo ${fusion_file}| sed -e 's/.txt/_filtered.txt/');
-      sed -i 's/,/./g' ${outdir}/${fusion_file};
-      awk -v pvalue=$pvalue_cutoff '{if(NR==1) print $0; if (($8)<=pvalue) print $0}' ${outdir}/${fusion_file} > ${outdir}/${fusion_output}
+      sed -i 's/,/./g' ${pascal_outdir}/${fusion_file};
+      awk -v pvalue=$pvalue_cutoff '{if(NR==1) print $0; if (($8)<=pvalue) print $0}' ${pascal_outdir}/${fusion_file} > ${pascal_outdir}/${fusion_output}
   else
-      touch ${outdir}/no_fusion_output_filtered.txt;
+      touch ${pascal_outdir}/no_fusion_output_filtered.txt;
   fi
 
-  pathway_file=$(ls ${outdir}| grep PathwaySet)
-  if [[ -f "${outdir}/${pathway_file}" ]]; then
+  pathway_file=$(ls ${pascal_outdir}| grep PathwaySet)
+  if [[ -f "${pascal_outdir}/${pathway_file}" ]]; then
       pathway_output=$(echo ${pathway_file}| sed -e 's/.txt/_filtered.txt/')
-      sed -i 's/,/./g' ${outdir}/${pathway_file}
-      awk -v pvalue=$pvalue_cutoff '{if(NR==1) print $0; if (($2)<=pvalue) print $0}' ${outdir}/${pathway_file} > ${outdir}/${pathway_output}
+      sed -i 's/,/./g' ${pascal_outdir}/${pathway_file}
+      awk -v pvalue=$pvalue_cutoff '{if(NR==1) print $0; if (($2)<=pvalue) print $0}' ${pascal_outdir}/${pathway_file} > ${pascal_outdir}/${pathway_output}
   else
-     touch ${outdir}/no_pathway_output_filtered.txt;
+     touch ${pascal_outdir}/no_pathway_output_filtered.txt;
   fi
 
 fi
 
-set +x
+
 
 ##### eMAGMA
-
+mkdir -p ${outdir}/step4_eMAGMA
+eMAGMA_outdir="${outdir}/step4_eMAGMA"
 synonym=${25};  # Accounting for synonymous SNP IDs
 #### synonyms=No -- > suppress automatically loading, to speed up the process
 #### synonym-dup=drop  -->  SNPs that have multiple synonyms in the data are removed from the analysis
@@ -245,50 +257,50 @@ fi
 #./eMAGMA.sh emagma_test.txt output_folder afr no 0 0
 
 ${bindir}/magma --annotate window=${up_window},${down_window} --snp-loc ${outdir}/input1.txt --gene-loc ${dbdir}/NCBI/NCBI37.3.gene.loc \
---out ${outdir}/${output}; ## NCBI to binary_dir
+--out ${eMAGMA_outdir}/${output}; ## NCBI to binary_dir
 
 if [[ "$synonym" == "No" ]]; then
 ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonyms=0 \
---gene-annot ${outdir}/${output}.genes.annot \
+--gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
 --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
 --gene-settings adap-permp=1001 \
 --big-data \
---out ${outir}/${output};
+--out ${eMAGMA_outdir}/${output};
 elif  [[ "$synonym" == "drop" ]]; then
   ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop \
-  --gene-annot ${outdir}/${output}.genes.annot \
+  --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
-  --out ${outdir}/${output};
+  --out ${eMAGMA_outdir}/${output};
 elif  [[ "$synonym" == "drop-dup" ]]; then
   ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop-dup \
-  --gene-annot ${outdir}/${output}.genes.annot \
+  --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
-  --out ${outdir}/${output};
+  --out ${eMAGMA_outdir}/${output};
 elif  [[ "$synonym" == "skip" ]]; then
   ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip \
-  --gene-annot ${outdir}/${output}.genes.annot \
+  --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
-  --out ${outdir}/${output};
+  --out ${eMAGMA_outdir}/${output};
 elif  [[ "$synonym" == "skip-dup" ]]; then
   ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip-dup \
-  --gene-annot ${outdir}/${output}.genes.annot \
+  --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
-  --out ${outdir}/${output};
+  --out ${eMAGMA_outdir}/${output};
 else
   ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population}  \
-  --gene-annot ${outdir}/${output}.genes.annot \
+  --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
-  --out ${outdir}/${output};
+  --out ${eMAGMA_outdir}/${output};
 fi
 
 tissue=${28}
@@ -296,58 +308,61 @@ tissue=${28}
 if [[ "$tissue" != "No" ]]; then
     if [[ "$synonym" == "No" ]]; then
     ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonyms=0 \
-    --gene-annot ${dbdirr}/tissues/${tissue}.genes.annot \
+    --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
     --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
     --gene-settings adap-permp=1001 \
     --big-data \
-    --out ${outdir}/${output}.${tissue};
+    --out ${eMAGMA_outdir}/${output}.${tissue};
     elif  [[ "$synonym" == "drop" ]]; then
       ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
-      --out ${outdir}/${output}.${tissue};
+      --out ${eMAGMA_outdir}/${output}.${tissue};
     elif  [[ "$synonym" == "drop-dup" ]]; then
       ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop-dup \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
-      --out ${outdir}/${output}.${tissue};
+      --out ${eMAGMA_outdir}/${output}.${tissue};
     elif  [[ "$synonym" == "skip" ]]; then
       ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
-      --out ${outdir}/${output}.${tissue};
+      --out ${eMAGMA_outdir}/${output}.${tissue};
     elif  [[ "$synonym" == "skip-dup" ]]; then
       ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip-dup \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
-      --out ${outdir}/${output}.${tissue};
+      --out ${eMAGMA_outdir}/${output}.${tissue};
     else
       ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population}  \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
-      --out ${outdir}/${output}.${tissue};
+      --out ${eMAGMA_outdir}/${output}.${tissue};
     fi
 
-    Rscript --vanilla ${bindir}/Genes.R ${outdir}/${output}.${tissue}.genes.out ${dbdir}/NCBI/NCBI37.3.gene.loc
+    Rscript --vanilla ${bindir}/Genes.R ${eMAGMA_outdir}/${output}.${tissue}.genes.out ${dbdir}/NCBI/NCBI37.3.gene.loc
 fi
 
 
-Rscript --vanilla ${bindir}/Genes.R ${outdir}/${output}.genes.out ${dbdir}/NCBI/NCBI37.3.gene.loc
-Rscript --vanilla ${bindir}/plot_qq_manhattan.R ${outdir}/input1.txt ${outdir}
+Rscript --vanilla ${bindir}/Genes.R ${eMAGMA_outdir}/${output}.genes.out ${dbdir}/NCBI/NCBI37.3.gene.loc
+Rscript --vanilla ${bindir}/plot_qq_manhattan.R ${outdir}/input1.txt ${eMAGMA_outdir}
 
 ### SMR
 ## Input files ----> SNP    A1  A2  freq    b   se  p   n
 ## orginal header --- > rsid	CHR	BP	A1	A2	freq	slope	slope_se	pval_nominal	n
+mkdir -p ${outdir}/step5_SMR
+SMR_outdir="${outdir}/step5_SMR"
+
 cut -f1,4,5,6,7,8,9,10   ${outdir}/input1.txt > ${outdir}/input.smr
 sed -i 's/rsid/SNP/' ${outdir}/input.smr
 sed -i 's/slope_se/se/' ${outdir}/input.smr
@@ -420,7 +435,7 @@ smr_cmd(){
   --diff-freq-prop ${diff_freq_prop} \
   --peqtl-smr ${peqtl_smr} \
   ${HEIDI_cmd} \
-  --out ${outdir}/$2
+  --out ${SMR_outdir}/$2
 
   Rscript --vanilla  ${bindir}/plot_qq_manhattan_smr.R  ${outdir}/$2.smr ${outdir} $2
 }
@@ -436,7 +451,7 @@ smr_trans_cmd(){
   --peqtl-smr ${peqtl_smr} \
   ${HEIDI_cmd} \
   ${trans_cmd} \
-  --out ${outdir}/$2
+  --out ${SMR_outdir}/$2
 }
 
 smr_multi_cmd(){
@@ -450,9 +465,9 @@ smr_multi_cmd(){
   --peqtl-smr ${peqtl_smr} \
   ${HEIDI_cmd} \
   ${smr_multi_cmd} \
-  --out ${outdir}/$2
+  --out ${SMR_outdir}/$2
 
-  Rscript --vanilla  ${bindir}/plot_qq_manhattan_smr.R  ${outdir}/$2.msmr ${outdir} $2
+  Rscript --vanilla  ${bindir}/plot_qq_manhattan_smr.R  ${SMR_outdir}/$2.msmr ${SMR_outdir} $2
 }
 
 
@@ -498,6 +513,10 @@ fi
 ## Input --> chromosome, start position, end position, the reference nucleotides and the observed nucleotides.
 ## orginal header --- > rsid	CHR	BP	A1	A2	freq	slope	slope_se	pval_nominal	n
 awk 'BEGIN{OFS="\t"} (FNR==1) {next;} {print $2,$3,($3),$4,$5,$1}' ${outdir}/input1.txt > ${outdir}/input.annovar
+mkdir -p ${outdir}/step6_deleteriousness
+mkdir -p ${outdir}/step7_annotations
+deleteriousness_outdir="${outdir}/step6_deleteriousness"
+annotations_outdir="${outdir}/step7_annotations"
 
 # deleteriousness and annotation
 GENE_DB=${49} #{ucsc", "ensembl"}
@@ -548,11 +567,11 @@ DATABASES="${DATABASES},dbnsfp33a"
 # perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar intervar_20170202 ${dbdir}//annovar/humandb/
 
 perl "${bindir}/table_annovar.pl" "${outdir}/input.annovar" "${dbdir}/annovar/humandb/" -buildver hg19 \
-    -out "${outdir}/deleteriousness_output" -remove -protocol ${DATABASES} \
+    -out "${deleteriousness_outdir}/deleteriousness_output" -remove -protocol ${DATABASES} \
     -operation $OPERATION -nastring na -csvout -polish
 
 #run rscript
-Rscript ${bindir}/filter_exonic.R ${outdir}/input.annovar ${outdir} ${GENE_DB}
+Rscript ${bindir}/filter_exonic.R ${outdir}/input.annovar ${deleteriousness_outdir} ${GENE_DB}
 
 OPERATION="gx"    #### Dare, please explain this also.
 DATABASES="refGene"
@@ -626,11 +645,11 @@ then
 fi
 
 perl "${bindir}/table_annovar.pl"  "${outdir}/input.annovar" "${dbdir}/annovar/humandb/" -buildver hg19 \
-    -out "${outdir}/annotation_output" -remove -protocol ${DATABASES} \
+    -out "${annotations_outdir}/annotation_output" -remove -protocol ${DATABASES} \
     -operation $OPERATION -nastring . -csvout -polish -xref ${dbdir}/annovar/example/gene_xref.txt
 
 #run rscript
-Rscript  ${bindir}/disgenet_script.R ${DISGENET} "${outdir}/input.annovar" ${outdir} ${GENE_DB} ${dbdir}/annovar/disgenet
+Rscript  ${bindir}/disgenet_script.R ${DISGENET} "${outdir}/input.annovar" ${annotations_outdir} ${GENE_DB} ${dbdir}/annovar/disgenet
 
 
 ##perl annotate_variation.pl -webfrom annovar -downdb avdblist -buildver hg19 .
