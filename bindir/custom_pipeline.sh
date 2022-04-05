@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -x;
-## rsid	CHR	BP A1	A2	freq	slope	slope_se	pval_nominal	n z
-bindir="/media/yagoubali/bioinfo2/pgwas/custom_pipeline"
-dbdir="/media/yagoubali/bioinfo2/pgwas/custom_pipeline/dbdir"
+## rsid	CHR	BP A1	A2	freq	slope(beta)	slope_se(standard error)	pval_nominal(pvalue)	n z
+bindir="/mnt/d/custom/bindir"
+dbdir="/mnt/d/custom/dbs"
 gwas_summary=$1
 output=$(basename ${gwas_summary})
 outdir=$2
@@ -214,6 +214,8 @@ if [[ "$runpathway" == "on" ]]; then
   fi
 
 fi
+
+set +x
 
 ##### eMAGMA
 
@@ -511,7 +513,15 @@ DISGENET=${58} #{ true, false}
 CLINVAR=${59} #{ true, false}
 INTERVAR=${60} #{ true, false}
 DATABASES="refGene"; ## Dare, please explain this variable and why it has only one value
-OPERATION="gx,f"    #### Dare, please explain this also.
+OPERATION="g,f"    #### Dare, please explain this also.
+
+if [ "$GENE_DB" = "ucsc" ]; then
+  DATABASES="knownGene"
+fi
+
+if [ "$GENE_DB" = "ensembl" ]; then
+  DATABASES="ensGene"
+fi
 
 DATABASES="${DATABASES},dbnsfp33a"
 
@@ -555,14 +565,14 @@ if [ "$GENE_DB" = "ensembl" ]; then
   DATABASES="ensGene"
 fi
 
-DATABASES="${DATABASES},dbnsfp33a"
-if [ "$GENE_DB" = "ucsc" ]; then
-  DATABASES="knownGene"
-fi
+# DATABASES="${DATABASES},dbnsfp33a"
+# if [ "$GENE_DB" = "ucsc" ]; then
+  # DATABASES="knownGene"
+# fi
 
-if [ "$GENE_DB" = "ensembl" ]; then
-  DATABASES="ensGene"
-fi
+# if [ "$GENE_DB" = "ensembl" ]; then
+  # DATABASES="ensGene"
+# fi
 
 if [[ $CYTOBAND == true ]]
 then
