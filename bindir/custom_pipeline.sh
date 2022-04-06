@@ -2,7 +2,10 @@
 set -x;
 ## rsid	CHR	BP A1	A2	freq	slope(beta)	slope_se(standard error)	pval_nominal(pvalue)	n z
 bindir="/home/yagoubali/Projects/deployment/spgwas-custom/bindir"
+
 dbdir="/media/yagoubali/bioinfo2/pgwas/custom_pipeline/dbdir"
+bin_scripts=${dbdir}/scripts
+cd ${bin_scripts}
 gwas_summary=$1
 output=$(basename ${gwas_summary})
 outdir=$2
@@ -45,7 +48,7 @@ fi
 
 ## rsid	CHR	BP	A1	A2	freq	slope	slope_se	pval_nominal	n
 
-${bindir}/plink \
+${bin_scripts}/plink \
     --bfile ${dbdir}/g1000_${population}/g1000_${population} \
     --clump-p1 ${clump_p1} \
     --clump-p2 ${clump_p2} \
@@ -78,7 +81,7 @@ type=${12} ##{"quant", "cc"} #quantification or case-control
 s=${13} #proportion between case and control (between 0 and 1)
 p1=${14} #p1: prior probability a SNP is associated with the trait 1, default 1e-4
 
-Rscript --vanilla ${bindir}/coloc_fineMapping.R ${outdir}/input1.txt  ${outdir} \
+Rscript --vanilla ${bin_scripts}/coloc_fineMapping.R ${outdir}/input1.txt  ${outdir} \
 ${p1}   \
 ${type}  \
 ${s}
@@ -116,9 +119,9 @@ genesetfile=${17}; # {msigdb_entrez, msigBIOCARTA_KEGG_REACTOME}
 # resources/genesets/msigdb/msigBIOCARTA_KEGG_REACTOME.gmt
 #pathway_output_suffix=${genesetfile};
 if [[ "$genesetfile" = "msigdb.v4.0.entrez" ]]; then
-  genesetfile=${bindir}'/resources/genesets/msigdb/msigdb.v4.0.entrez.gmt';
+  genesetfile=${bin_scripts}'/resources/genesets/msigdb/msigdb.v4.0.entrez.gmt';
 else # [[ "$genesetfile" -eq "msigBIOCARTA_KEGG_REACTOME" ]]; then
-  genesetfile=${bindir}'/resources/genesets/msigdb/msigBIOCARTA_KEGG_REACTOME.gmt';
+  genesetfile=${bin_scripts}'/resources/genesets/msigdb/msigBIOCARTA_KEGG_REACTOME.gmt';
 fi
 
 # add cutoff for pathways file as parameter 7
@@ -161,7 +164,7 @@ if [[  -z "$mafcutoff" ]]; then
 fi
 
 
-cd ${bindir}
+
 
 ##1. Run analysis for all chromosomes
 if [[ "$chr" == "all" ]]; then
@@ -256,46 +259,46 @@ fi
 
 #./eMAGMA.sh emagma_test.txt output_folder afr no 0 0
 
-${bindir}/magma --annotate window=${up_window},${down_window} --snp-loc ${outdir}/input1.txt --gene-loc ${dbdir}/NCBI/NCBI37.3.gene.loc \
+${bin_scripts}/magma --annotate window=${up_window},${down_window} --snp-loc ${outdir}/input1.txt --gene-loc ${dbdir}/NCBI/NCBI37.3.gene.loc \
 --out ${eMAGMA_outdir}/${output}; ## NCBI to binary_dir
 
 if [[ "$synonym" == "No" ]]; then
-${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonyms=0 \
+${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonyms=0 \
 --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
 --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
 --gene-settings adap-permp=1001 \
 --big-data \
 --out ${eMAGMA_outdir}/${output};
 elif  [[ "$synonym" == "drop" ]]; then
-  ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop \
+  ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop \
   --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
   --out ${eMAGMA_outdir}/${output};
 elif  [[ "$synonym" == "drop-dup" ]]; then
-  ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop-dup \
+  ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop-dup \
   --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
   --out ${eMAGMA_outdir}/${output};
 elif  [[ "$synonym" == "skip" ]]; then
-  ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip \
+  ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip \
   --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
   --out ${eMAGMA_outdir}/${output};
 elif  [[ "$synonym" == "skip-dup" ]]; then
-  ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip-dup \
+  ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip-dup \
   --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
   --out ${eMAGMA_outdir}/${output};
 else
-  ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population}  \
+  ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population}  \
   --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
@@ -307,42 +310,42 @@ tissue=${28}
 
 if [[ "$tissue" != "No" ]]; then
     if [[ "$synonym" == "No" ]]; then
-    ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonyms=0 \
+    ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonyms=0 \
     --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
     --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
     --gene-settings adap-permp=1001 \
     --big-data \
     --out ${eMAGMA_outdir}/${output}.${tissue};
     elif  [[ "$synonym" == "drop" ]]; then
-      ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop \
+      ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
       --out ${eMAGMA_outdir}/${output}.${tissue};
     elif  [[ "$synonym" == "drop-dup" ]]; then
-      ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop-dup \
+      ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop-dup \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
       --out ${eMAGMA_outdir}/${output}.${tissue};
     elif  [[ "$synonym" == "skip" ]]; then
-      ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip \
+      ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
       --out ${eMAGMA_outdir}/${output}.${tissue};
     elif  [[ "$synonym" == "skip-dup" ]]; then
-      ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip-dup \
+      ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip-dup \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
       --out ${eMAGMA_outdir}/${output}.${tissue};
     else
-      ${bindir}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population}  \
+      ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population}  \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
@@ -350,12 +353,12 @@ if [[ "$tissue" != "No" ]]; then
       --out ${eMAGMA_outdir}/${output}.${tissue};
     fi
 
-    Rscript --vanilla ${bindir}/Genes.R ${eMAGMA_outdir}/${output}.${tissue}.genes.out ${dbdir}/NCBI/NCBI37.3.gene.loc
+    Rscript --vanilla ${bin_scripts}/Genes.R ${eMAGMA_outdir}/${output}.${tissue}.genes.out ${dbdir}/NCBI/NCBI37.3.gene.loc
 fi
 
 
-Rscript --vanilla ${bindir}/Genes.R ${eMAGMA_outdir}/${output}.genes.out ${dbdir}/NCBI/NCBI37.3.gene.loc
-Rscript --vanilla ${bindir}/plot_qq_manhattan.R ${outdir}/input1.txt ${eMAGMA_outdir}
+Rscript --vanilla ${bin_scripts}/Genes.R ${eMAGMA_outdir}/${output}.genes.out ${dbdir}/NCBI/NCBI37.3.gene.loc
+Rscript --vanilla ${bin_scripts}/plot_qq_manhattan.R ${outdir}/input1.txt ${eMAGMA_outdir}
 
 ### SMR
 ## Input files ----> SNP    A1  A2  freq    b   se  p   n
@@ -426,7 +429,7 @@ if [[ ${smr_multi} = "on" ]]; then
 fi
 
 smr_cmd(){
-  ${bindir}/smr_Linux  --bfile ${dbdir}/g1000_${population}/g1000_${population}   \
+  ${bin_scripts}/smr_Linux  --bfile ${dbdir}/g1000_${population}/g1000_${population}   \
   --gwas-summary ${outdir}/input.smr \
   --beqtl-summary ${dbdir}/smr/$1 \
   --maf ${maf} \
@@ -437,11 +440,11 @@ smr_cmd(){
   ${HEIDI_cmd} \
   --out ${SMR_outdir}/$2
 
-  Rscript --vanilla  ${bindir}/plot_qq_manhattan_smr.R  ${outdir}/$2.smr ${outdir} $2
+  Rscript --vanilla  ${bin_scripts}/plot_qq_manhattan_smr.R  ${outdir}/$2.smr ${outdir} $2
 }
 
 smr_trans_cmd(){
-  ${bindir}/smr_Linux  --bfile ${dbdir}/g1000_${population}/g1000_${population}   \
+  ${bin_scripts}/smr_Linux  --bfile ${dbdir}/g1000_${population}/g1000_${population}   \
   --gwas-summary ${outdir}/input.smr \
   --beqtl-summary ${dbdir}/smr/$1 \
   --maf ${maf} \
@@ -455,7 +458,7 @@ smr_trans_cmd(){
 }
 
 smr_multi_cmd(){
-  ${bindir}/smr_Linux  --bfile ${dbdir}/g1000_${population}/g1000_${population}   \
+  ${bin_scripts}/smr_Linux  --bfile ${dbdir}/g1000_${population}/g1000_${population}   \
   --gwas-summary ${outdir}/input.smr \
   --beqtl-summary ${dbdir}/smr/$1 \
   --maf ${maf} \
@@ -467,7 +470,7 @@ smr_multi_cmd(){
   ${smr_multi_cmd} \
   --out ${SMR_outdir}/$2
 
-  Rscript --vanilla  ${bindir}/plot_qq_manhattan_smr.R  ${SMR_outdir}/$2.msmr ${SMR_outdir} $2
+  Rscript --vanilla  ${bin_scripts}/plot_qq_manhattan_smr.R  ${SMR_outdir}/$2.msmr ${SMR_outdir} $2
 }
 
 
@@ -545,33 +548,33 @@ fi
 DATABASES="${DATABASES},dbnsfp33a"
 
 #
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar refGene ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb cytoBand ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar exac03 ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar avsnp147 ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar dbnsfp30a ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar dbnsfp33a ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar refGene ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb cytoBand ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar exac03 ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar avsnp147 ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar dbnsfp30a ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar dbnsfp33a ${dbdir}/annovar/humandb/
 ###
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar knownGene ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar ensGene ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar cytoBand ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar ALL.sites.2015_08 ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar AFR.sites.2015_08 ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar AMR.sites.2015_08 ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar EAS.sites.2015_08 ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar EUR.sites.2015_08 ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar SAS.sites.2015_08 ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar clinvar_20170130 ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar intervar_2017020 ${dbdir}/annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar 1000g2015aug ${dbdir}//annovar/humandb/
-# perl ${bindir}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar intervar_20170202 ${dbdir}//annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar knownGene ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar ensGene ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar cytoBand ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar ALL.sites.2015_08 ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar AFR.sites.2015_08 ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar AMR.sites.2015_08 ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar EAS.sites.2015_08 ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar EUR.sites.2015_08 ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar SAS.sites.2015_08 ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar clinvar_20170130 ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar intervar_2017020 ${dbdir}/annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar 1000g2015aug ${dbdir}//annovar/humandb/
+# perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar intervar_20170202 ${dbdir}//annovar/humandb/
 
-perl "${bindir}/table_annovar.pl" "${outdir}/input.annovar" "${dbdir}/annovar/humandb/" -buildver hg19 \
+perl "${bin_scripts}/table_annovar.pl" "${outdir}/input.annovar" "${dbdir}/annovar/humandb/" -buildver hg19 \
     -out "${deleteriousness_outdir}/deleteriousness_output" -remove -protocol ${DATABASES} \
     -operation $OPERATION -nastring na -csvout -polish
 
 #run rscript
-Rscript ${bindir}/filter_exonic.R ${outdir}/input.annovar ${deleteriousness_outdir} ${GENE_DB}
+Rscript ${bin_scripts}/filter_exonic.R ${outdir}/input.annovar ${deleteriousness_outdir} ${GENE_DB}
 
 OPERATION="gx"    #### Dare, please explain this also.
 DATABASES="refGene"
@@ -644,12 +647,12 @@ then
   OPERATION="${OPERATION},f"
 fi
 
-perl "${bindir}/table_annovar.pl"  "${outdir}/input.annovar" "${dbdir}/annovar/humandb/" -buildver hg19 \
+perl "${bin_scripts}/table_annovar.pl"  "${outdir}/input.annovar" "${dbdir}/annovar/humandb/" -buildver hg19 \
     -out "${annotations_outdir}/annotation_output" -remove -protocol ${DATABASES} \
     -operation $OPERATION -nastring . -csvout -polish -xref ${dbdir}/annovar/example/gene_xref.txt
 
 #run rscript
-Rscript  ${bindir}/disgenet_script.R ${DISGENET} "${outdir}/input.annovar" ${annotations_outdir} ${GENE_DB} ${dbdir}/annovar/disgenet
+Rscript  ${bin_scripts}/disgenet_script.R ${DISGENET} "${outdir}/input.annovar" ${annotations_outdir} ${GENE_DB} ${dbdir}/annovar/disgenet
 
 
 ##perl annotate_variation.pl -webfrom annovar -downdb avdblist -buildver hg19 .
