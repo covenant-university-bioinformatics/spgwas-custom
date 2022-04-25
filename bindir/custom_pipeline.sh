@@ -5,7 +5,7 @@ bindir="/home/yagoubali/Projects/deployment/spgwas-custom/bindir"
 
 dbdir="/media/yagoubali/bioinfo2/pgwas/custom_pipeline/dbdir"
 bin_scripts=${dbdir}/scripts
-cd ${bin_scripts}
+#cd ${bin_scripts}
 gwas_summary=$1
 output=$(basename ${gwas_summary})
 outdir=$2
@@ -42,11 +42,7 @@ if [[ "${clump_p1}" > "0.0001" ]]; then
 fi
 
 #By default, no variant may belong to more than one clump; remove this restriction with --clump-allow-overlap
-## GWAS_summary
 
-#./clumping.sh UKB_bv_height_SMR_0.05.txt outdir eur 0.1 0.05 0.8 1 No  Yes glist-hg19 0
-
-## rsid	CHR	BP	A1	A2	freq	slope	slope_se	pval_nominal	n
 
 ${bin_scripts}/plink \
     --bfile ${dbdir}/g1000_${population}/g1000_${population} \
@@ -65,7 +61,7 @@ ${bin_scripts}/plink \
 
 
 ####### Step 2 Selecting indepent SNPs
-touch ${outdir}/SNPs.clump
+touch ${clump_output}/SNPs.clump
 cut -f3 ${clump_output}/${output}.clumped | sed -e '1d' > ${clump_output}/SNPs.clump
 
 awk 'BEGIN{OFS="\t"}
@@ -90,13 +86,10 @@ mv  ${outdir}/finemapping.results  ${finemap_outdir}/
 mv  ${outdir}/finemapping.txt     ${finemap_outdir}/
 
 
-
 ############### STEP 3 Pathway analysis
 ### prepare Pascal input file ---> two columns without header
 ### SNP , pvalue
 
-##------------------------------------>
-#### rsid	CHR	BP	A1	A2	freq	slope	slope_se	pval_nominal	n
 mkdir -p ${outdir}/step3_pascal
 pascal_outdir="${outdir}/step3_pascal"
 touch ${pascal_outdir}/results.log
@@ -110,11 +103,10 @@ pvalue_index=$(echo $line |tr "\t" "\n"|grep -inx 'pval_nominal'| cut -d: -f1); 
 cut -f ${rsid_index},${pvalue_index} ${outdir}/input1.txt > ${outdir}/Pascal.input
 sed -i '1d'  ${outdir}/Pascal.input
 
-##------------------------------------>
 
 runpathway=${15} #{on, off}
 chr=${16}; #{1-22, all}
-genesetfile=${17}; # {msigdb_entrez, msigBIOCARTA_KEGG_REACTOME}
+genesetfile=${17}; # {msigdb.v4.0.entrez, msigBIOCARTA_KEGG_REACTOME}
 # resources/genesets/msigdb/msigdb.v4.0.entrez.gmt
 # resources/genesets/msigdb/msigBIOCARTA_KEGG_REACTOME.gmt
 #pathway_output_suffix=${genesetfile};
@@ -164,11 +156,21 @@ if [[  -z "$mafcutoff" ]]; then
 fi
 
 
+#mkdir -p ${outdir}/pascal_script
+mkdir -p ${outdir}/pascal_script/output
+cp -r ${bin_scripts}/Pascal ${outdir}/pascal_script/
+cp -r ${bin_scripts}/jars ${outdir}/pascal_script/
+cp -r ${bin_scripts}/lib ${outdir}/pascal_script/
+cp -r ${bin_scripts}/xianyi-OpenBLAS-48f06dd ${outdir}/pascal_script/
+cp -r ${bin_scripts}/settings.txt ${outdir}/pascal_script/
+cp -r ${bin_scripts}/resources ${outdir}/pascal_script/
+cd ${outdir}/pascal_script/
+
 
 
 ##1. Run analysis for all chromosomes
 if [[ "$chr" == "all" ]]; then
-bash Pascal --pval=${outdir}/Pascal.input \
+bash ${outdir}/pascal_script/Pascal --pval=${outdir}/Pascal.input \
         --customdir=${dbdir}/custom-1000genomes  \
         --custom=$population \
         --runpathway=${runpathway}  \
@@ -181,7 +183,7 @@ bash Pascal --pval=${outdir}/Pascal.input \
         --genesetfile=$genesetfile \
         --outdir=${pascal_outdir} &> ${pascal_outdir}/results.log
 else
-    bash Pascal --pval=${outdir}/Pascal.input \
+    bash ${outdir}/pascal_script/Pascal --pval=${outdir}/Pascal.input \
                 --customdir=${dbdir}/custom-1000genomes  \
                 --custom=$population \
                 --runpathway=${runpathway}  \
@@ -229,7 +231,8 @@ if [[ "$runpathway" == "on" ]]; then
 
 fi
 
-
+cd ${outdir}
+rm -r ${outdir}/pascal_script
 
 ##### eMAGMA
 mkdir -p ${outdir}/step4_eMAGMA
@@ -440,7 +443,7 @@ smr_cmd(){
   ${HEIDI_cmd} \
   --out ${SMR_outdir}/$2
 
-  Rscript --vanilla  ${bin_scripts}/plot_qq_manhattan_smr.R  ${outdir}/$2.smr ${outdir} $2
+  Rscript --vanilla  ${bin_scripts}/plot_qq_manhattan_smr.R  ${SMR_outdir}/$2.smr ${SMR_outdir} $2
 }
 
 smr_trans_cmd(){
@@ -656,3 +659,37 @@ Rscript  ${bin_scripts}/disgenet_script.R ${DISGENET} "${outdir}/input.annovar" 
 
 
 ##perl annotate_variation.pl -webfrom annovar -downdb avdblist -buildver hg19 .
+
+
+### Step 8 HaploR
+
+##cleaning input file
+touch ${outdir}/input.haploR
+echo "SNPs" > ${outdir}/input.haploR   ### header
+
+awk 'BEGIN{OFS="\t"}
+(FNR==NR)  {a[$1]=$1; next}
+($1 in a ) {print $0 }' ${dbdir}/haploR/1KG_phase1_snps.db  ${clump_output}/SNPs.clump >>  ${outdir}/input.haploR
+
+mkdir -p ${outdir}/step8_HaploR
+HaploR_outdir="${outdir}/step8_HaploR"
+
+ldThresh=${61} #0.8
+ldPop=${population^^}    # {"AFR", "AMR", "ASN", "EUR"}
+if [ ${ldPop} = "SAS" ] || [ ${ldPop} = "EAS" ]; then
+    ldPop="ASN"
+fi
+epi=${62}  # {"vanilla", "imputed", "methyl"} ---> Default "vanilla"
+cons=${63}    # {"gerp",  "siphy","both"} ---> Default   "both"
+genetypes=${64}  #{'gencode', 'refseq'}
+
+Rscript --vanilla ${bin_scripts}/HaploReg.R ${outdir}/input.haploR \
+${HaploR_outdir} \
+$ldThresh \
+$ldPop \
+$epi \
+$cons \
+${genetypes}
+# 0.8 vanilla both refseq
+rm ${outdir}/input*
+rm ${outdir}/Pascal.input
