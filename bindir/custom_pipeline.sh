@@ -19,7 +19,7 @@ clump_output="${outdir}/step1_clump"
 clump_p1=$4;            ## P-value threshold for a SNP to be included as an index SNP. By default, must have p-value no larger than 0.0001
 clump_p2=$5;            ## Secondary significance threshold for clumped SNPs
 clump_r2=$6;            ## LD threshold for clumping
-clump_kb=$6;            ## Physical distance threshold for clumping
+clump_kb=$7;            ## Physical distance threshold for clumping
 allow_overlap=$8        ## {Yes, No}
 use_gene_region_file=${9} ## {Yes, No}
 
@@ -27,7 +27,7 @@ clump_range=${10}         ##{glist-hg19, glist-hg38}
 clump_range_border=${11}  ## A window arround  gene bounds by the given number of kilobases, default 0
 
 allow_overlap_cmd='';
-if [[ "$allow_overlap_cmd" = "Yes" ]]; then
+if [[ "$allow_overlap" = "Yes" ]]; then
     allow_overlap_cmd='--clump-allow-overlap';
 fi
 
@@ -63,6 +63,9 @@ ${bin_scripts}/plink \
 ####### Step 2 Selecting indepent SNPs
 touch ${clump_output}/SNPs.clump
 cut -f3 ${clump_output}/${output}.clumped | sed -e '1d' > ${clump_output}/SNPs.clump
+mv  ${clump_output}/${output}.clumped   ${clump_output}/clumped.results 
+mv  ${clump_output}/${output}.clumped.ranges   ${clump_output}/clumped.ranges
+mv  ${clump_output}/${output}.log   ${clump_output}/log.log
 
 awk 'BEGIN{OFS="\t"}
 (FNR==NR)  {a[$1]=$1; next}
@@ -203,8 +206,10 @@ if [[ -f "${pascal_outdir}/${genescores_file}" ]]; then
     genescores_output=$(echo ${genescores_file}| sed -e 's/.txt/_filtered.txt/');
     sed -i 's/,/./g' ${pascal_outdir}/${genescores_file};
     awk -v pvalue=$pvalue_cutoff '{if(NR==1) print $0; if (($8)<=pvalue) print $0}' ${pascal_outdir}/${genescores_file} > ${pascal_outdir}/${genescores_output}
+    mv ${pascal_outdir}/${genescores_file} ${pascal_outdir}/pascal_genescores.txt
+    mv ${pascal_outdir}/${genescores_output} ${pascal_outdir}/pascal_genescores_filtered.txt
 else
-    touch ${pascal_outdir}/no_genescores_output_filtered.txt;
+    touch ${pascal_outdir}/no_pascal_genescores.txt;
 fi
 
 
@@ -216,8 +221,10 @@ if [[ "$runpathway" == "on" ]]; then
       fusion_output=$(echo ${fusion_file}| sed -e 's/.txt/_filtered.txt/');
       sed -i 's/,/./g' ${pascal_outdir}/${fusion_file};
       awk -v pvalue=$pvalue_cutoff '{if(NR==1) print $0; if (($8)<=pvalue) print $0}' ${pascal_outdir}/${fusion_file} > ${pascal_outdir}/${fusion_output}
+      mv ${pascal_outdir}/${fusion_file} ${pascal_outdir}/pascal_fusion.txt
+      mv ${pascal_outdir}/${fusion_output} ${pascal_outdir}/pascal_fusion_filtered.txt
   else
-      touch ${pascal_outdir}/no_fusion_output_filtered.txt;
+      touch ${pascal_outdir}/no_pascal_fusion.txt;
   fi
 
   pathway_file=$(ls ${pascal_outdir}| grep PathwaySet)
@@ -225,8 +232,10 @@ if [[ "$runpathway" == "on" ]]; then
       pathway_output=$(echo ${pathway_file}| sed -e 's/.txt/_filtered.txt/')
       sed -i 's/,/./g' ${pascal_outdir}/${pathway_file}
       awk -v pvalue=$pvalue_cutoff '{if(NR==1) print $0; if (($2)<=pvalue) print $0}' ${pascal_outdir}/${pathway_file} > ${pascal_outdir}/${pathway_output}
+      mv ${pascal_outdir}/${pathway_file} ${pascal_outdir}/pascal_pathway.txt
+      mv ${pascal_outdir}/${pathway_output} ${pascal_outdir}/pascal_pathway_filtered.txt
   else
-     touch ${pascal_outdir}/no_pathway_output_filtered.txt;
+     touch ${pascal_outdir}/no_pascal_pathway.txt;
   fi
 
 fi
@@ -309,6 +318,8 @@ else
   --out ${eMAGMA_outdir}/${output};
 fi
 
+
+
 tissue=${28}
 
 if [[ "$tissue" != "No" ]]; then
@@ -359,9 +370,18 @@ if [[ "$tissue" != "No" ]]; then
     Rscript --vanilla ${bin_scripts}/Genes.R ${eMAGMA_outdir}/${output}.${tissue}.genes.out ${dbdir}/NCBI/NCBI37.3.gene.loc
 fi
 
-
 Rscript --vanilla ${bin_scripts}/Genes.R ${eMAGMA_outdir}/${output}.genes.out ${dbdir}/NCBI/NCBI37.3.gene.loc
 Rscript --vanilla ${bin_scripts}/plot_qq_manhattan.R ${outdir}/input1.txt ${eMAGMA_outdir}
+
+mv ${eMAGMA_outdir}/${output}.genes.out ${eMAGMA_outdir}/gene_set.genes.out
+mv ${eMAGMA_outdir}/${output}.genes.annot ${eMAGMA_outdir}/genes.annot
+mv ${eMAGMA_outdir}/${output}.genes.raw ${eMAGMA_outdir}/genes.raw
+mv ${eMAGMA_outdir}/${output}.log ${eMAGMA_outdir}/log.log
+mv ${eMAGMA_outdir}/${output}.log.suppl ${eMAGMA_outdir}/log.suppl
+mv ${eMAGMA_outdir}/${output}.${tissue}.genes.out ${eMAGMA_outdir}/gene_set.${tissue}.genes.out
+mv ${eMAGMA_outdir}/${output}.${tissue}.genes.raw ${eMAGMA_outdir}/genes.raw_${tissue}
+mv ${eMAGMA_outdir}/${output}.${tissue}.log ${eMAGMA_outdir}/log.log_${tissue}
+mv ${eMAGMA_outdir}/${output}.${tissue}.log.suppl ${eMAGMA_outdir}/log.suppl_${tissue}
 
 ### SMR
 ## Input files ----> SNP    A1  A2  freq    b   se  p   n
