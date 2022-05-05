@@ -1,0 +1,9 @@
+numpy
+scipy
+scikit-learn
+pandas
+tqdm
+pyarrow
+bitarray
+rpy2
+pandas-plink
