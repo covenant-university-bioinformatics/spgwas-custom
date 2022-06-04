@@ -32,8 +32,8 @@ RUN apt-get clean
 
 #remove windows line endings
 RUN apt-get install -y dos2unix
-RUN dos2unix pipeline_scripts/coloc.sh
-RUN chmod 775 pipeline_scripts/coloc.sh
+RUN dos2unix pipeline_scripts/custom_pipeline.sh
+RUN chmod 775 pipeline_scripts/custom_pipeline.sh
 
 COPY package.json ./
 
