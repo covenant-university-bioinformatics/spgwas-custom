@@ -7,7 +7,7 @@ import { UserEmailConfirmChangeEvent } from '@cubrepgwas/pgwascommon';
 
 @Injectable()
 export class UserEmailConfirmChangeListener extends Listener<UserEmailConfirmChangeEvent> {
-  queueGroupName = 'bayes-jobs-service';
+  queueGroupName = 'spgwas-jobs-service';
   readonly subject: Subjects.EmailConfirmChange = Subjects.EmailConfirmChange;
 
   @Inject(AuthService)

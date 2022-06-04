@@ -163,7 +163,7 @@ export default async (job: SandboxedJob) => {
   //spawn process
   const jobSpawn = spawnSync(
     // './pipeline_scripts/pascal.sh &>/dev/null',
-    './pipeline_scripts/pipeline.sh',
+    './pipeline_scripts/custom_pipeline.sh',
     jobParameters,
     { maxBuffer: 1024 * 1024 * 1024 },
   );
@@ -176,11 +176,11 @@ export default async (job: SandboxedJob) => {
   console.log(error_msg);
 
   let clump_ResultsFile = await fileOrPathExists(
-    `${pathToOutputDir}/step1_clump/clump.clumped`,
+    `${pathToOutputDir}/step1_clump/clumped.results`,
   );
 
   let coloc_ResultsFile = await fileOrPathExists(
-    `${pathToOutputDir}/step2_coloc/finemapping.txt`,
+    `${pathToOutputDir}/step2_colocFinemapp/finemapping.txt`,
   );
 
   let pascal_geneScoresFile = await fileOrPathExists(
@@ -201,7 +201,7 @@ export default async (job: SandboxedJob) => {
   }
 
   const emagma_genes_out = await fileOrPathExists(
-    `${pathToOutputDir}/step4_eMAGMA/Gene_set.genes.out`,
+    `${pathToOutputDir}/step4_eMAGMA/gene_set.genes.out`,
   );
 
   const emagma_manhattan_plot = await fileOrPathExists(
@@ -212,7 +212,7 @@ export default async (job: SandboxedJob) => {
 
   if (String(parameters.emagma_tissues) !== '') {
     emagma_tissue_genes_out = await fileOrPathExists(
-      `${pathToOutputDir}/step4_eMAGMA/Gene_set.${parameters.emagma_tissues}.genes.out`,
+      `${pathToOutputDir}/step4_eMAGMA/gene_set.${parameters.emagma_tissues}.genes.out`,
     );
   }
 
@@ -223,7 +223,9 @@ export default async (job: SandboxedJob) => {
   let smr_cageMultiManhattanPlot = true;
 
   if (parameters.smr_cage_eqtl === 'true') {
-    smr_cageSMRFile = await fileOrPathExists(`${pathToOutputDir}/CAGE.smr`);
+    smr_cageSMRFile = await fileOrPathExists(
+      `${pathToOutputDir}/step5_SMR/CAGE.smr`,
+    );
     smr_cageSMRManhattanPlot = await fileOrPathExists(
       `${pathToOutputDir}/step5_SMR/CAGE_manhattan.png`,
     );
@@ -250,7 +252,9 @@ export default async (job: SandboxedJob) => {
   let smr_westraMultiManhattanPlot = true;
 
   if (parameters.smr_westra_eqtl === 'true') {
-    smr_westraSMRFile = await fileOrPathExists(`${pathToOutputDir}/Westra.smr`);
+    smr_westraSMRFile = await fileOrPathExists(
+      `${pathToOutputDir}/step5_SMR/Westra.smr`,
+    );
     smr_westraSMRManhattanPlot = await fileOrPathExists(
       `${pathToOutputDir}/step5_SMR/Westra_manhattan.png`,
     );
@@ -320,11 +324,11 @@ export default async (job: SandboxedJob) => {
   }
 
   const annot_snp_plot = await fileOrPathExists(
-    `${pathToOutputDir}/step7_annotations/snp_plot.png`,
+    `${pathToOutputDir}/step7_annotations/snp_plot.jpg`,
   );
 
   const annot_exon_plot = await fileOrPathExists(
-    `${pathToOutputDir}/step7_annotations/exon_plot.png`,
+    `${pathToOutputDir}/step7_annotations/exon_plot.jpg`,
   );
 
   const haplor_ResultsFile = await fileOrPathExists(
@@ -366,6 +370,8 @@ export default async (job: SandboxedJob) => {
     annot_exon_plot,
     haplor_ResultsFile,
   ];
+
+  console.log(results);
 
   const answer = results.some((element) => element === false);
 

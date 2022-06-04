@@ -4,7 +4,7 @@
 
 # test if there is at least one argument: if not, return an error
 args = commandArgs(trailingOnly=TRUE)
-
+options(warn=-1)
 if (length(args)==0) {
   stop("Please check your input file", call.=FALSE)
 }
@@ -72,3 +72,5 @@ write.table(as.data.frame(df), row.names=FALSE, file= output, quote = TRUE, sep 
 errors=paste0(outdir,'/',"Errors_haploR.txt",sep="")
 
  #traceback()
+
+# Rscript --vanilla /local/datasets/tools/scripts/HaploReg.R /pv/analysis/ee33d0c4-9306-41fb-926b-820c2e4efd94/spgwas-custom/output/input2.haploR /pv/analysis/ee33d0c4-9306-41fb-926b-820c2e4efd94/spgwas-custom/output/step8_HaploR/outdir 0.8 EUR vanilla both refseq

@@ -7,7 +7,7 @@ import { AuthService } from '../../auth/services/auth.service';
 
 @Injectable()
 export class UserApprovedListener extends Listener<UserApprovedEvent> {
-  queueGroupName = 'bayes-jobs-service';
+  queueGroupName = 'spgwas-jobs-service';
   readonly subject: Subjects.UserApproved = Subjects.UserApproved;
 
   @Inject(AuthService)

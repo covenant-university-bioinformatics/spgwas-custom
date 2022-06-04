@@ -46,3 +46,5 @@ r-cran-ggplot2
 r-cran-curl
 r-cran-teachingdemos
 r-cran-qqman
+r-cran-xml
+r-cran-httr

@@ -7,7 +7,7 @@ import { UserUpdatedEvent } from '@cubrepgwas/pgwascommon';
 
 @Injectable()
 export class UserUpdatedListener extends Listener<UserUpdatedEvent> {
-  queueGroupName = 'bayes-jobs-service';
+  queueGroupName = 'spgwas-jobs-service';
   readonly subject: Subjects.UserUpdated = Subjects.UserUpdated;
 
   @Inject(AuthService)

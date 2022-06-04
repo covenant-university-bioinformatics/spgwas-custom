@@ -7,7 +7,7 @@ import { UserDeletedEvent } from '@cubrepgwas/pgwascommon';
 
 @Injectable()
 export class UserDeletedListener extends Listener<UserDeletedEvent> {
-  queueGroupName = 'bayes-jobs-service';
+  queueGroupName = 'spgwas-jobs-service';
   readonly subject: Subjects.UserDeleted = Subjects.UserDeleted;
 
   @Inject(AuthService)

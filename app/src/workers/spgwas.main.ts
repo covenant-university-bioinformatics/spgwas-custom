@@ -17,7 +17,7 @@ const createScheduler = () => {
   });
 };
 
-const processorFile = path.join(__dirname, 'bayes.worker.js');
+const processorFile = path.join(__dirname, 'spgwas.worker.js');
 
 export const createWorkers = async (
   jobCompletedPublisher: JobCompletedPublisher,
@@ -44,20 +44,20 @@ export const createWorkers = async (
 
       const pathToOutputDir = `/pv/analysis/${job.data.jobUID}/${appConfig.appName}/output`;
 
-      const clump_ResultsFile = `${pathToOutputDir}/step1_clump/clump.clumped`;
-      const coloc_ResultsFile = `${pathToOutputDir}/step2_coloc/finemapping.txt`;
+      const clump_ResultsFile = `${pathToOutputDir}/step1_clump/clumped.results`;
+      const coloc_ResultsFile = `${pathToOutputDir}/step2_colocFinemapp/finemapping.txt`;
       const pascal_geneScoresFile = `${pathToOutputDir}/step3_pascal/pascal_genescores.txt`;
       const pascal_pathwaySetFile = `${pathToOutputDir}/step3_pascal/pascal_pathway.txt`;
       const pascal_fusionGenesFile = `${pathToOutputDir}/step3_pascal/pascal_fusion.txt`;
-      const emagma_genes_out = `${pathToOutputDir}/step4_eMAGMA/Gene_set.genes.out`;
+      const emagma_genes_out = `${pathToOutputDir}/step4_eMAGMA/gene_set.genes.out`;
       const emagma_manhattan_plot = `${pathToOutputDir}/step4_eMAGMA/manhattan.png`;
-      const emagma_tissue_genes_out = `${pathToOutputDir}/step4_eMAGMA/Gene_set.${parameters.emagma_tissues}.genes.out`;
-      const smr_cageSMRFile = `${pathToOutputDir}/CAGE.smr`;
+      const emagma_tissue_genes_out = `${pathToOutputDir}/step4_eMAGMA/gene_set.${parameters.emagma_tissues}.genes.out`;
+      const smr_cageSMRFile = `${pathToOutputDir}/step5_SMR/CAGE.smr`;
       const smr_cageSMRManhattanPlot = `${pathToOutputDir}/step5_SMR/CAGE_manhattan.png`;
       const smr_cageTransFile = `${pathToOutputDir}/step5_SMR/CAGE_trans.smr`;
       const smr_cageMultiFile = `${pathToOutputDir}/step5_SMR/CAGE_multi.msmr`;
       const smr_cageMultiManhattanPlot = `${pathToOutputDir}/step5_SMR/CAGE_multi_manhattan.png`;
-      const smr_westraSMRFile = `${pathToOutputDir}/Westra.smr`;
+      const smr_westraSMRFile = `${pathToOutputDir}/step5_SMR/Westra.smr`;
       const smr_westraSMRManhattanPlot = `${pathToOutputDir}/step5_SMR/Westra_manhattan.png`;
       const smr_westraTransFile = `${pathToOutputDir}/step5_SMR/Westra_trans.smr`;
       const smr_westraMultiFile = `${pathToOutputDir}/step5_SMR/Westra_multi.msmr`;
@@ -71,8 +71,8 @@ export const createWorkers = async (
       const delet_exon_plot = `${pathToOutputDir}/step6_deleteriousness/exon_plot.jpg`;
       const annot_outputFile = `${pathToOutputDir}/step7_annotations/annotation_output.hg19_multianno_full.tsv`;
       const annot_disgenet = `${pathToOutputDir}/step7_annotations/disgenet.txt`;
-      const annot_snp_plot = `${pathToOutputDir}/step7_annotations/snp_plot.png`;
-      const annot_exon_plot = `${pathToOutputDir}/step7_annotations/exon_plot.png`;
+      const annot_snp_plot = `${pathToOutputDir}/step7_annotations/snp_plot.jpg`;
+      const annot_exon_plot = `${pathToOutputDir}/step7_annotations/exon_plot.jpg`;
       const haplor_ResultsFile = `${pathToOutputDir}/step8_HaploR/results_haploR.txt`;
 
       //update db with result files

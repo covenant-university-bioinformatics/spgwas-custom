@@ -34,7 +34,7 @@ export enum SynonymousSNPS {
 }
 
 export enum GeneDB {
-  REFSEQ = 'refGene',
+  REFSEQ = 'refseq',
   UCSC = 'knownGene',
   ENSEMBL = 'ensGene',
 }
@@ -67,6 +67,59 @@ export enum Populations {
   EUR = 'eur',
   EAS = 'eas',
   SAS = 'sas',
+}
+
+export enum ChromosomesAll {
+  CHR1 = '1',
+  CHR2 = '2',
+  CHR3 = '3',
+  CHR4 = '4',
+  CHR5 = '5',
+  CHR6 = '6',
+  CHR7 = '7',
+  CHR8 = '8',
+  CHR9 = '9',
+  CHR10 = '10',
+  CHR11 = '11',
+  CHR12 = '12',
+  CHR13 = '13',
+  CHR14 = '14',
+  CHR15 = '15',
+  CHR16 = '16',
+  CHR17 = '17',
+  CHR18 = '18',
+  CHR19 = '19',
+  CHR20 = '20',
+  CHR21 = '21',
+  CHR22 = '22',
+  ALL = 'all',
+}
+
+export enum ChromosomesXY {
+  CHR1 = '1',
+  CHR2 = '2',
+  CHR3 = '3',
+  CHR4 = '4',
+  CHR5 = '5',
+  CHR6 = '6',
+  CHR7 = '7',
+  CHR8 = '8',
+  CHR9 = '9',
+  CHR10 = '10',
+  CHR11 = '11',
+  CHR12 = '12',
+  CHR13 = '13',
+  CHR14 = '14',
+  CHR15 = '15',
+  CHR16 = '16',
+  CHR17 = '17',
+  CHR18 = '18',
+  CHR19 = '19',
+  CHR20 = '20',
+  CHR21 = '21',
+  CHR22 = '22',
+  CHRX = 'X',
+  CHRY = 'Y',
 }
 
 export enum TISSUEOptions {
@@ -119,59 +172,6 @@ export enum TISSUEOptions {
   Uterus = 'Uterus',
   Vagina = 'Vagina',
   Whole_Blood = 'Whole_Blood',
-}
-
-export enum ChromosomesXY {
-  CHR1 = '1',
-  CHR2 = '2',
-  CHR3 = '3',
-  CHR4 = '4',
-  CHR5 = '5',
-  CHR6 = '6',
-  CHR7 = '7',
-  CHR8 = '8',
-  CHR9 = '9',
-  CHR10 = '10',
-  CHR11 = '11',
-  CHR12 = '12',
-  CHR13 = '13',
-  CHR14 = '14',
-  CHR15 = '15',
-  CHR16 = '16',
-  CHR17 = '17',
-  CHR18 = '18',
-  CHR19 = '19',
-  CHR20 = '20',
-  CHR21 = '21',
-  CHR22 = '22',
-  CHRX = 'X',
-  CHRY = 'Y',
-}
-
-export enum ChromosomesAll {
-  CHR1 = '1',
-  CHR2 = '2',
-  CHR3 = '3',
-  CHR4 = '4',
-  CHR5 = '5',
-  CHR6 = '6',
-  CHR7 = '7',
-  CHR8 = '8',
-  CHR9 = '9',
-  CHR10 = '10',
-  CHR11 = '11',
-  CHR12 = '12',
-  CHR13 = '13',
-  CHR14 = '14',
-  CHR15 = '15',
-  CHR16 = '16',
-  CHR17 = '17',
-  CHR18 = '18',
-  CHR19 = '19',
-  CHR20 = '20',
-  CHR21 = '21',
-  CHR22 = '22',
-  ALL = 'all',
 }
 
 //Interface that describe the properties that are required to create a new job
@@ -476,6 +476,10 @@ const SpgwasSchema = new mongoose.Schema<SpgwasDoc, SpgwasModel>(
       enum: [GeneScoring.MAX, GeneScoring.SUM],
       trim: true,
     },
+    pascal_mergedistance: {
+      type: Number,
+      trim: true,
+    },
     pascal_mafcutoff: {
       type: Number,
       trim: true,
@@ -691,15 +695,15 @@ const SpgwasSchema = new mongoose.Schema<SpgwasDoc, SpgwasModel>(
     },
     haplor_cons: {
       type: String,
-      enum: [EPITypes.VANILLA, EPITypes.METHYL, EPITypes.IMPUTED],
-      trim: true,
-      default: EPITypes.VANILLA,
-    },
-    haplor_genetypes: {
-      type: String,
       enum: [CONSTypes.GERP, CONSTypes.SIPHY, CONSTypes.BOTH],
       trim: true,
       default: CONSTypes.BOTH,
+    },
+    haplor_genetypes: {
+      type: String,
+      enum: [Genetypes.GENCODE, Genetypes.REFSEQ],
+      trim: true,
+      default: Genetypes.REFSEQ,
     },
     job: {
       type: mongoose.Schema.Types.ObjectId,
