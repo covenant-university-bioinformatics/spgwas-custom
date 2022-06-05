@@ -23,6 +23,7 @@ import { validateInputs } from './service.util';
 //production
 const testPath =
   '/local/datasets/pgwas_test_files/custom/UK_custom.0.05_rs.txt';
+
 //development
 // const testPath = '/local/datasets/data/custom/UK_custom.0.05_rs.txt';
 
@@ -131,7 +132,8 @@ export class JobsSpgwasService {
       };
     } catch (e) {
       if (e.code === 11000) {
-        throw new ConflictException('Duplicate job name not allowed');
+        throw new ConflictException(e.message);
+        //  'Duplicate job name not allowed'
       }
       await session.abortTransaction();
       await sessionTest.abortTransaction();

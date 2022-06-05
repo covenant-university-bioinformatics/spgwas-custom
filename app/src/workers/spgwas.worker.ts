@@ -105,6 +105,8 @@ export default async (job: SandboxedJob) => {
     job: job.data.jobId,
   }).exec();
 
+  console.log('parameters ', parameters);
+
   const jobParams = await SpgwasJobsModel.findById(job.data.jobId).exec();
 
   //create input file and folder

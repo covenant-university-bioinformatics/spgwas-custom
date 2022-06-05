@@ -79,7 +79,7 @@ const SpgwasJobSchema = new mongoose.Schema<SpgwasJobsDoc, JobsModel>(
     jobUID: {
       type: String,
       required: [true, 'Please add a Job UID'],
-      unique: true,
+      unique: [true, 'Duplicate Job UID not allowed'],
       trim: true,
     },
     job_name: {
@@ -89,7 +89,6 @@ const SpgwasJobSchema = new mongoose.Schema<SpgwasJobsDoc, JobsModel>(
     inputFile: {
       type: String,
       required: [true, 'Please add a input filename'],
-      unique: true,
       trim: true,
     },
     clump_ResultsFile: {

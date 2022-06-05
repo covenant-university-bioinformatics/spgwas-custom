@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 #set -x;
 ## rsid	CHR	BP A1	A2	freq	slope(beta)	slope_se(standard error)	pval_nominal(pvalue)	n z
-bindir="/local/datasets/custom"
 
+#prod
+bindir="/local/datasets/custom"
 dbdir="/local/datasets/custom"
+
+#dev
+#bindir="/local/datasets/tools"
+#dbdir="/local/datasets/tools"
+
 bin_scripts=${dbdir}/scripts
 #cd ${bin_scripts}
 gwas_summary=$1
