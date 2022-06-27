@@ -105,7 +105,7 @@ export default async (job: SandboxedJob) => {
     job: job.data.jobId,
   }).exec();
 
-  console.log('parameters ', parameters);
+  // console.log('parameters ', parameters);
 
   const jobParams = await SpgwasJobsModel.findById(job.data.jobId).exec();
 
@@ -370,7 +370,7 @@ export default async (job: SandboxedJob) => {
     annot_disgenet,
     annot_snp_plot,
     annot_exon_plot,
-    haplor_ResultsFile,
+    // haplor_ResultsFile,
   ];
 
   console.log(results);
