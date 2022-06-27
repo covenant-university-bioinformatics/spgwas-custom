@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-set -x;
+#set -x;
 ## rsid	CHR	BP A1	A2	freq	slope(beta)	slope_se(standard error)	pval_nominal(pvalue)	n z
-bindir="/home/yagoubali/Projects/deployment/spgwas-custom/bindir"
 
-dbdir="/media/yagoubali/bioinfo2/pgwas/custom_pipeline/dbdir"
+#prod
+bindir="/local/datasets/custom"
+dbdir="/local/datasets/custom"
+
+#dev
+#bindir="/local/datasets/tools"
+#dbdir="/local/datasets/tools"
+
 bin_scripts=${dbdir}/scripts
 #cd ${bin_scripts}
 gwas_summary=$1
@@ -55,7 +61,7 @@ ${bin_scripts}/plink \
     --clump-field pval_nominal \
     ${allow_overlap_cmd} \
     ${gene_region_cmd} \
-    --out ${clump_output}/${output}
+    --out ${clump_output}/${output} &> ${clump_output}/error.log
     sed -i $'s/^  *//' ${clump_output}/${output}.clumped  ## Remove space at the begining of each line
     sed -i 's/  */\t/g' ${clump_output}/${output}.clumped ## spaces to tab
 
@@ -63,7 +69,7 @@ ${bin_scripts}/plink \
 ####### Step 2 Selecting indepent SNPs
 touch ${clump_output}/SNPs.clump
 cut -f3 ${clump_output}/${output}.clumped | sed -e '1d' > ${clump_output}/SNPs.clump
-mv  ${clump_output}/${output}.clumped   ${clump_output}/clumped.results 
+mv  ${clump_output}/${output}.clumped   ${clump_output}/clumped.results
 mv  ${clump_output}/${output}.clumped.ranges   ${clump_output}/clumped.ranges
 mv  ${clump_output}/${output}.log   ${clump_output}/log.log
 
@@ -272,7 +278,7 @@ fi
 #./eMAGMA.sh emagma_test.txt output_folder afr no 0 0
 
 ${bin_scripts}/magma --annotate window=${up_window},${down_window} --snp-loc ${outdir}/input1.txt --gene-loc ${dbdir}/NCBI/NCBI37.3.gene.loc \
---out ${eMAGMA_outdir}/${output}; ## NCBI to binary_dir
+--out ${eMAGMA_outdir}/${output} &> ${eMAGMA_outdir}/error1.log; ## NCBI to binary_dir
 
 if [[ "$synonym" == "No" ]]; then
 ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonyms=0 \
@@ -280,42 +286,42 @@ ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} sy
 --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
 --gene-settings adap-permp=1001 \
 --big-data \
---out ${eMAGMA_outdir}/${output};
+--out ${eMAGMA_outdir}/${output} &> ${eMAGMA_outdir}/error2.log;
 elif  [[ "$synonym" == "drop" ]]; then
   ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop \
   --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
-  --out ${eMAGMA_outdir}/${output};
+  --out ${eMAGMA_outdir}/${output} &> ${eMAGMA_outdir}/error2.log;
 elif  [[ "$synonym" == "drop-dup" ]]; then
   ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop-dup \
   --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
-  --out ${eMAGMA_outdir}/${output};
+  --out ${eMAGMA_outdir}/${output} &> ${eMAGMA_outdir}/error2.log;
 elif  [[ "$synonym" == "skip" ]]; then
   ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip \
   --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
-  --out ${eMAGMA_outdir}/${output};
+  --out ${eMAGMA_outdir}/${output} &> ${eMAGMA_outdir}/error2.log;
 elif  [[ "$synonym" == "skip-dup" ]]; then
   ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip-dup \
   --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
-  --out ${eMAGMA_outdir}/${output};
+  --out ${eMAGMA_outdir}/${output} &> ${eMAGMA_outdir}/error2.log;
 else
   ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population}  \
   --gene-annot ${eMAGMA_outdir}/${output}.genes.annot \
   --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
   --gene-settings adap-permp=1001 \
   --big-data \
-  --out ${eMAGMA_outdir}/${output};
+  --out ${eMAGMA_outdir}/${output} &> ${eMAGMA_outdir}/error2.log;
 fi
 
 
@@ -329,42 +335,42 @@ if [[ "$tissue" != "No" ]]; then
     --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
     --gene-settings adap-permp=1001 \
     --big-data \
-    --out ${eMAGMA_outdir}/${output}.${tissue};
+    --out ${eMAGMA_outdir}/${output}.${tissue} &> ${eMAGMA_outdir}/error3.log;
     elif  [[ "$synonym" == "drop" ]]; then
       ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
-      --out ${eMAGMA_outdir}/${output}.${tissue};
+      --out ${eMAGMA_outdir}/${output}.${tissue} &> ${eMAGMA_outdir}/error3.log;
     elif  [[ "$synonym" == "drop-dup" ]]; then
       ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=drop-dup \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
-      --out ${eMAGMA_outdir}/${output}.${tissue};
+      --out ${eMAGMA_outdir}/${output}.${tissue} &> ${eMAGMA_outdir}/error3.log;
     elif  [[ "$synonym" == "skip" ]]; then
       ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
-      --out ${eMAGMA_outdir}/${output}.${tissue};
+      --out ${eMAGMA_outdir}/${output}.${tissue} &> ${eMAGMA_outdir}/error3.log;
     elif  [[ "$synonym" == "skip-dup" ]]; then
       ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population} synonym-dup=skip-dup \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
-      --out ${eMAGMA_outdir}/${output}.${tissue};
+      --out ${eMAGMA_outdir}/${output}.${tissue} &> ${eMAGMA_outdir}/error3.log;
     else
       ${bin_scripts}/magma --bfile ${dbdir}/g1000_${population}/g1000_${population}  \
       --gene-annot ${dbdir}/tissues/${tissue}.genes.annot \
       --pval ${outdir}/input1.txt use=rsid,pval_nominal ncol=n \
       --gene-settings adap-permp=1001 \
       --big-data \
-      --out ${eMAGMA_outdir}/${output}.${tissue};
+      --out ${eMAGMA_outdir}/${output}.${tissue} &> ${eMAGMA_outdir}/error3.log;
     fi
 
     Rscript --vanilla ${bin_scripts}/Genes.R ${eMAGMA_outdir}/${output}.${tissue}.genes.out ${dbdir}/NCBI/NCBI37.3.gene.loc
@@ -382,6 +388,8 @@ mv ${eMAGMA_outdir}/${output}.${tissue}.genes.out ${eMAGMA_outdir}/gene_set.${ti
 mv ${eMAGMA_outdir}/${output}.${tissue}.genes.raw ${eMAGMA_outdir}/genes.raw_${tissue}
 mv ${eMAGMA_outdir}/${output}.${tissue}.log ${eMAGMA_outdir}/log.log_${tissue}
 mv ${eMAGMA_outdir}/${output}.${tissue}.log.suppl ${eMAGMA_outdir}/log.suppl_${tissue}
+
+echo "STEP 5 SMR"
 
 ### SMR
 ## Input files ----> SNP    A1  A2  freq    b   se  p   n
@@ -499,42 +507,42 @@ smr_multi_cmd(){
 
 if [[ "$Westra_eqtl" = "true" ]]; then
     smr_out="Westra";
-    smr_cmd westra_eqtl_hg19 ${smr_out};
+    smr_cmd westra_eqtl_hg19 ${smr_out} &> ${SMR_outdir}/error_westra.log;
     if [[ ${trans} = "on" ]]; then
-      smr_trans_cmd westra_eqtl_hg19 ${smr_out}_trans;
+      smr_trans_cmd westra_eqtl_hg19 ${smr_out}_trans &> ${SMR_outdir}/error_westra_trans.log;
     fi
 
     if [[ ${smr_multi} = "on" ]]; then
-        smr_multi_cmd westra_eqtl_hg19 ${smr_out}_multi;
+        smr_multi_cmd westra_eqtl_hg19 ${smr_out}_multi &> ${SMR_outdir}/error_westra_multi.log;
     fi
 fi
 
 
 if [[ "$CAGE_eqtl" = "true" ]]; then
     smr_out="CAGE";
-    smr_cmd CAGE.sparse ${smr_out};
+    smr_cmd CAGE.sparse ${smr_out} &> ${SMR_outdir}/error_cage.log;
     if [[ ${trans} = "on" ]]; then
-      smr_trans_cmd CAGE.sparse ${smr_out}_trans;
+      smr_trans_cmd CAGE.sparse ${smr_out}_trans &> ${SMR_outdir}/error_cage_trans.log;
     fi
 
     if [[ ${smr_multi} = "on" ]]; then
-        smr_multi_cmd CAGE.sparse ${smr_out}_multi;
+        smr_multi_cmd CAGE.sparse ${smr_out}_multi &> ${SMR_outdir}/error_cage_multi.log;
     fi
 fi
 
 if [[ "$GTEx_v8_tissue" != "" ]]; then
 	smr_out=${GTEx_v8_tissue};
-  smr_cmd GTEx8/${GTEx_v8_tissue}/${GTEx_v8_tissue} ${smr_out};
+  smr_cmd GTEx8/${GTEx_v8_tissue}/${GTEx_v8_tissue} ${smr_out} &> ${SMR_outdir}/error_tissue.log;
   if [[ ${trans} = "on" ]]; then
-    smr_trans_cmd GTEx8/${GTEx_v8_tissue}/${GTEx_v8_tissue} ${smr_out}_trans;
+    smr_trans_cmd GTEx8/${GTEx_v8_tissue}/${GTEx_v8_tissue} ${smr_out}_trans &> ${SMR_outdir}/error_tissue_trans.log;
   fi
 
   if [[ ${smr_multi} = "on" ]]; then
-      smr_multi_cmd GTEx8/${GTEx_v8_tissue}/${GTEx_v8_tissue} ${smr_out}_multi;
+      smr_multi_cmd GTEx8/${GTEx_v8_tissue}/${GTEx_v8_tissue} ${smr_out}_multi &> ${SMR_outdir}/error_tissue_multi.log;
   fi
 fi
 
-
+echo "STEP 6 and 7 Annovar"
 ## Annovar
 ## Input --> chromosome, start position, end position, the reference nucleotides and the observed nucleotides.
 ## orginal header --- > rsid	CHR	BP	A1	A2	freq	slope	slope_se	pval_nominal	n
@@ -559,17 +567,13 @@ CLINVAR=${59} #{ true, false}
 INTERVAR=${60} #{ true, false}
 DATABASES="refGene"; ## Dare, please explain this variable and why it has only one value
 OPERATION="g,f"    #### Dare, please explain this also.
-
 if [ "$GENE_DB" = "ucsc" ]; then
   DATABASES="knownGene"
 fi
-
 if [ "$GENE_DB" = "ensembl" ]; then
   DATABASES="ensGene"
 fi
-
 DATABASES="${DATABASES},dbnsfp33a"
-
 #
 # perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar refGene ${dbdir}/annovar/humandb/
 # perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb cytoBand ${dbdir}/annovar/humandb/
@@ -591,34 +595,26 @@ DATABASES="${DATABASES},dbnsfp33a"
 # perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar intervar_2017020 ${dbdir}/annovar/humandb/
 # perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar 1000g2015aug ${dbdir}//annovar/humandb/
 # perl ${bin_scripts}/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar intervar_20170202 ${dbdir}//annovar/humandb/
-
 perl "${bin_scripts}/table_annovar.pl" "${outdir}/input.annovar" "${dbdir}/annovar/humandb/" -buildver hg19 \
     -out "${deleteriousness_outdir}/deleteriousness_output" -remove -protocol ${DATABASES} \
-    -operation $OPERATION -nastring na -csvout -polish
-
+    -operation $OPERATION -nastring na -csvout -polish &> ${deleteriousness_outdir}/error_delet.log
 #run rscript
 Rscript ${bin_scripts}/filter_exonic.R ${outdir}/input.annovar ${deleteriousness_outdir} ${GENE_DB}
-
 OPERATION="gx"    #### Dare, please explain this also.
 DATABASES="refGene"
-
 if [ "$GENE_DB" = "ucsc" ]; then
   DATABASES="knownGene"
 fi
-
 if [ "$GENE_DB" = "ensembl" ]; then
   DATABASES="ensGene"
 fi
-
 # DATABASES="${DATABASES},dbnsfp33a"
 # if [ "$GENE_DB" = "ucsc" ]; then
   # DATABASES="knownGene"
 # fi
-
 # if [ "$GENE_DB" = "ensembl" ]; then
   # DATABASES="ensGene"
 # fi
-
 if [[ $CYTOBAND == true ]]
 then
   DATABASES="${DATABASES},cytoBand"
@@ -669,20 +665,14 @@ then
   DATABASES="${DATABASES},intervar_20170202"
   OPERATION="${OPERATION},f"
 fi
-
 perl "${bin_scripts}/table_annovar.pl"  "${outdir}/input.annovar" "${dbdir}/annovar/humandb/" -buildver hg19 \
     -out "${annotations_outdir}/annotation_output" -remove -protocol ${DATABASES} \
-    -operation $OPERATION -nastring . -csvout -polish -xref ${dbdir}/annovar/example/gene_xref.txt
-
+    -operation $OPERATION -nastring . -csvout -polish -xref ${dbdir}/annovar/example/gene_xref.txt &> ${annotations_outdir}/error_annot.log
 #run rscript
 Rscript  ${bin_scripts}/disgenet_script.R ${DISGENET} "${outdir}/input.annovar" ${annotations_outdir} ${GENE_DB} ${dbdir}/annovar/disgenet
-
-
 ##perl annotate_variation.pl -webfrom annovar -downdb avdblist -buildver hg19 .
-
-
 ### Step 8 HaploR
-
+echo "STEP 8 HAPLOR"
 ##cleaning input file
 touch ${outdir}/input.haploR
 echo "SNPs" > ${outdir}/input.haploR   ### header
@@ -703,22 +693,13 @@ epi=${62}  # {"vanilla", "imputed", "methyl"} ---> Default "vanilla"
 cons=${63}    # {"gerp",  "siphy","both"} ---> Default   "both"
 genetypes=${64}  #{'gencode', 'refseq'}
 
-Rscript --vanilla ${bin_scripts}/custom_HaploR.R ${outdir}/input.haploR \
+Rscript --vanilla ${bin_scripts}/HaploReg.R ${outdir}/input.haploR \
 ${HaploR_outdir} \
 $ldThresh \
 $ldPop \
 $epi \
 $cons \
 ${genetypes}
-
-
-### Removing carriage return sybmbols
-sed -i 's/\r//g' ${outdir}/step8_HaploR/results_haploR.txt 
-
-
 # 0.8 vanilla both refseq
 rm ${outdir}/input*
 rm ${outdir}/Pascal.input
-
-
-
