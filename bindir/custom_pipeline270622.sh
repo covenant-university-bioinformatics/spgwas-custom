@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -x;
 ## rsid	CHR	BP A1	A2	freq	slope(beta)	slope_se(standard error)	pval_nominal(pvalue)	n z
-bindir="/home/yagoubali/Projects/deployment/spgwas-custom/bindir"
+#bindir="/home/yagoubali/Projects/deployment/spgwas-custom/bindir"
 
-dbdir="/media/yagoubali/bioinfo2/pgwas/custom_pipeline/dbdir"
+dbdir="/local/datasets/tools"
 bin_scripts=${dbdir}/scripts
 #cd ${bin_scripts}
 gwas_summary=$1
@@ -13,7 +13,7 @@ population=$3
 
 
 #### Step 1
-#### perfom clumping
+#### perform clumping
 mkdir -p ${outdir}/step1_clump
 clump_output="${outdir}/step1_clump"
 clump_p1=$4;            ## P-value threshold for a SNP to be included as an index SNP. By default, must have p-value no larger than 0.0001
@@ -703,22 +703,13 @@ epi=${62}  # {"vanilla", "imputed", "methyl"} ---> Default "vanilla"
 cons=${63}    # {"gerp",  "siphy","both"} ---> Default   "both"
 genetypes=${64}  #{'gencode', 'refseq'}
 
-Rscript --vanilla ${bin_scripts}/custom_HaploR.R ${outdir}/input.haploR \
+Rscript --vanilla ${bin_scripts}/HaploReg.R ${outdir}/input.haploR \
 ${HaploR_outdir} \
 $ldThresh \
 $ldPop \
 $epi \
 $cons \
 ${genetypes}
-
-
-### Removing carriage return sybmbols
-sed -i 's/\r//g' ${outdir}/step8_HaploR/results_haploR.txt 
-
-
 # 0.8 vanilla both refseq
 rm ${outdir}/input*
 rm ${outdir}/Pascal.input
-
-
-

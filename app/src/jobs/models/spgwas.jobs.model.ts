@@ -69,7 +69,7 @@ export interface SpgwasJobsDoc extends mongoose.Document {
   annot_disgenet: string;
   annot_snp_plot: string;
   annot_exon_plot: string;
-  haplor_resultsFile: string;
+  haplor_ResultsFile: string;
   version: number;
   completionTime: Date;
 }

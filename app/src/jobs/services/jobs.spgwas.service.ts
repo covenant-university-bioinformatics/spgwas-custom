@@ -21,11 +21,11 @@ import {
 import { validateInputs } from './service.util';
 
 //production
-// const testPath =
-//   '/local/datasets/pgwas_test_files/custom/UK_custom.0.05_rs.txt';
+const testPath =
+  '/local/datasets/pgwas_test_files/custom/UK_custom.0.05_rs.txt';
 
 //development
-const testPath = '/local/datasets/data/custom/UK_custom.0.05_rs.txt';
+// const testPath = '/local/datasets/data/custom/UK_custom.0.05_rs.txt';
 
 @Injectable()
 export class JobsSpgwasService {

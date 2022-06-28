@@ -3,12 +3,12 @@
 ## rsid	CHR	BP A1	A2	freq	slope(beta)	slope_se(standard error)	pval_nominal(pvalue)	n z
 
 #prod
-#bindir="/local/datasets/custom"
-#dbdir="/local/datasets/custom"
+bindir="/local/datasets/custom"
+dbdir="/local/datasets/custom"
 
 #dev
-bindir="/local/datasets/tools"
-dbdir="/local/datasets/tools"
+#bindir="/local/datasets/tools"
+#dbdir="/local/datasets/tools"
 
 bin_scripts=${dbdir}/scripts
 #cd ${bin_scripts}
@@ -671,35 +671,41 @@ perl "${bin_scripts}/table_annovar.pl"  "${outdir}/input.annovar" "${dbdir}/anno
 #run rscript
 Rscript  ${bin_scripts}/disgenet_script.R ${DISGENET} "${outdir}/input.annovar" ${annotations_outdir} ${GENE_DB} ${dbdir}/annovar/disgenet
 ##perl annotate_variation.pl -webfrom annovar -downdb avdblist -buildver hg19 .
+
 ### Step 8 HaploR
 echo "STEP 8 HAPLOR"
-##cleaning input file
-#touch ${outdir}/input.haploR
-#echo "SNPs" > ${outdir}/input.haploR   ### header
 
-#awk 'BEGIN{OFS="\t"}
-#(FNR==NR)  {a[$1]=$1; next}
-#($1 in a ) {print $0 }' ${dbdir}/haploR/1KG_phase1_snps.db  ${clump_output}/SNPs.clump >>  ${outdir}/input.haploR
+#cleaning input file
+touch ${outdir}/input.haploR
+echo "SNPs" > ${outdir}/input.haploR   ### header
 
-#mkdir -p ${outdir}/step8_HaploR
-#HaploR_outdir="${outdir}/step8_HaploR"
+awk 'BEGIN{OFS="\t"}
+(FNR==NR)  {a[$1]=$1; next}
+($1 in a ) {print $0 }' ${dbdir}/haploR/1KG_phase1_snps.db  ${clump_output}/SNPs.clump >>  ${outdir}/input.haploR
 
-#ldThresh=${61} #0.8
-#ldPop=${population^^}    # {"AFR", "AMR", "ASN", "EUR"}
-#if [ ${ldPop} = "SAS" ] || [ ${ldPop} = "EAS" ]; then
-#    ldPop="ASN"
-#fi
-#epi=${62}  # {"vanilla", "imputed", "methyl"} ---> Default "vanilla"
-#cons=${63}    # {"gerp",  "siphy","both"} ---> Default   "both"
-#genetypes=${64}  #{'gencode', 'refseq'}
+mkdir -p ${outdir}/step8_HaploR
+HaploR_outdir="${outdir}/step8_HaploR"
 
-#Rscript --vanilla ${bin_scripts}/HaploReg.R ${outdir}/input.haploR \
-#${HaploR_outdir} \
-#$ldThresh \
-#$ldPop \
-#$epi \
-#$cons \
-#${genetypes}
+ldThresh=${61} #0.8
+ldPop=${population^^}    # {"AFR", "AMR", "ASN", "EUR"}
+if [ ${ldPop} = "SAS" ] || [ ${ldPop} = "EAS" ]; then
+    ldPop="ASN"
+fi
+epi=${62}  # {"vanilla", "imputed", "methyl"} ---> Default "vanilla"
+cons=${63}    # {"gerp",  "siphy","both"} ---> Default   "both"
+genetypes=${64}  #{'gencode', 'refseq'}
+
+Rscript --vanilla ${bin_scripts}/HaploReg.R ${outdir}/input.haploR \
+${HaploR_outdir} \
+$ldThresh \
+$ldPop \
+$epi \
+$cons \
+${genetypes}
+
+### Removing carriage return sybmbols
+sed -i 's/\r//g' ${outdir}/step8_HaploR/results_haploR.txt
+
 # 0.8 vanilla both refseq
-#rm ${outdir}/input*
-#rm ${outdir}/Pascal.input
+rm ${outdir}/input*
+rm ${outdir}/Pascal.input
