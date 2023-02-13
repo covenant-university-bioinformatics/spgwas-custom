@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "extract-zip": "^2.0.1",
-    "globby": "^13.1.3"
-  }
-}
