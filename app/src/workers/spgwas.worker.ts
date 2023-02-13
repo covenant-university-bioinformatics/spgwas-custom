@@ -14,6 +14,8 @@ import {
   fileOrPathExists,
   writeSpgwasFile,
 } from '@cubrepgwas/pgwascommon';
+import * as extract from "extract-zip";
+import * as globby from "globby";
 
 function sleep(ms) {
   console.log('sleeping');
@@ -109,11 +111,28 @@ export default async (job: SandboxedJob) => {
 
   const jobParams = await SpgwasJobsModel.findById(job.data.jobId).exec();
 
+  let fileInput = jobParams.inputFile;
+
+  //check if file is a zipped file
+  if(/[^.]+$/.exec(jobParams.inputFile)[0] === 'zip'){
+    fs.mkdirSync(`/pv/analysis/${jobParams.jobUID}/zip`, { recursive: true });
+    await extract(jobParams.inputFile, {dir: `/pv/analysis/${jobParams.jobUID}/zip/`});
+    const paths = await globby(`/pv/analysis/${jobParams.jobUID}/zip/*.*`);
+    if (paths.length === 0){
+      throw new Error('Zip had no files')
+    }
+    if (paths.length > 1){
+      throw new Error('Zip had too many files')
+    }
+    fileInput = paths[0]
+  }
+
+
   //create input file and folder
   let filename;
 
   //extract file name
-  const name = jobParams.inputFile.split(/(\\|\/)/g).pop();
+  const name = fileInput.split(/(\\|\/)/g).pop();
 
   if (parameters.useTest === false) {
     filename = `/pv/analysis/${jobParams.jobUID}/input/${name}`;
@@ -122,7 +141,7 @@ export default async (job: SandboxedJob) => {
   }
 
   //write the exact columns needed by the analysis
-  writeSpgwasFile(jobParams.inputFile, filename, {
+  writeSpgwasFile(fileInput, filename, {
     marker_name: parameters.marker_name - 1,
     chr: parameters.chr - 1,
     pos: parameters.position - 1,
@@ -138,6 +157,12 @@ export default async (job: SandboxedJob) => {
   if (parameters.useTest === false) {
     deleteFileorFolder(jobParams.inputFile).then(() => {
       // console.log('deleted');
+    });
+  }
+
+  if(/[^.]+$/.exec(jobParams.inputFile)[0] === 'zip'){
+    deleteFileorFolder(fileInput).then(() => {
+      console.log('deleted');
     });
   }
 
