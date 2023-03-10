@@ -358,9 +358,9 @@ export default async (job: SandboxedJob) => {
     `${pathToOutputDir}/step7_annotations/exon_plot.jpg`,
   );
 
-  const haplor_ResultsFile = await fileOrPathExists(
-    `${pathToOutputDir}/step8_HaploR/results_haploR.txt`,
-  );
+  // const haplor_ResultsFile = await fileOrPathExists(
+  //   `${pathToOutputDir}/step8_HaploR/results_haploR.txt`,
+  // );
 
   //close database connection
   closeDB();
