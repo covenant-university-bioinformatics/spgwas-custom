@@ -6,6 +6,7 @@ import { JobStatus, SpgwasJobsModel } from '../jobs/models/spgwas.jobs.model';
 import * as path from 'path';
 import { SpgwasModel } from '../jobs/models/spgwas.model';
 import { JobCompletedPublisher } from '../nats/publishers/job-completed-publisher';
+import { fileOrPathExists } from '@cubrepgwas/pgwascommon';
 
 let scheduler;
 
@@ -48,25 +49,111 @@ export const createWorkers = async (
       const coloc_ResultsFile = `${pathToOutputDir}/step2_colocFinemapp/finemapping.txt`;
       const pascal_geneScoresFile = `${pathToOutputDir}/step3_pascal/pascal_genescores.txt`;
       const pascal_pathwaySetFile = `${pathToOutputDir}/step3_pascal/pascal_pathway.txt`;
-      const pascal_fusionGenesFile = `${pathToOutputDir}/step3_pascal/pascal_fusion.txt`;
+      let pascal_fusionGenesFile;
+      if (
+        await fileOrPathExists(
+          `${pathToOutputDir}/step3_pascal/pascal_fusion.txt`,
+        )
+      ) {
+        pascal_fusionGenesFile = `${pathToOutputDir}/step3_pascal/pascal_fusion.txt`;
+      } else {
+        pascal_fusionGenesFile = `${pathToOutputDir}/step3_pascal/no_pascal_fusion.txt`;
+      }
       const emagma_genes_out = `${pathToOutputDir}/step4_eMAGMA/gene_set.genes.out`;
       const emagma_manhattan_plot = `${pathToOutputDir}/step4_eMAGMA/manhattan.png`;
       const emagma_tissue_genes_out = `${pathToOutputDir}/step4_eMAGMA/gene_set.${parameters.emagma_tissues}.genes.out`;
-      const smr_cageSMRFile = `${pathToOutputDir}/step5_SMR/CAGE.smr`;
+
+      let smr_cageSMRFile;
+      if (await fileOrPathExists(`${pathToOutputDir}/step5_SMR/CAGE.smr`)) {
+        smr_cageSMRFile = `${pathToOutputDir}/step5_SMR/CAGE.smr`;
+      } else {
+        smr_cageSMRFile = `${pathToOutputDir}/step5_SMR/error_cage.log`;
+      }
       const smr_cageSMRManhattanPlot = `${pathToOutputDir}/step5_SMR/CAGE_manhattan.png`;
-      const smr_cageTransFile = `${pathToOutputDir}/step5_SMR/CAGE_trans.smr`;
-      const smr_cageMultiFile = `${pathToOutputDir}/step5_SMR/CAGE_multi.msmr`;
+
+      let smr_cageTransFile;
+      if (
+        await fileOrPathExists(`${pathToOutputDir}/step5_SMR/CAGE_trans.smr`)
+      ) {
+        smr_cageTransFile = `${pathToOutputDir}/step5_SMR/CAGE_trans.smr`;
+      } else {
+        smr_cageTransFile = `${pathToOutputDir}/step5_SMR/error_cage_trans.log`;
+      }
+
+      let smr_cageMultiFile;
+      if (
+        await fileOrPathExists(`${pathToOutputDir}/step5_SMR/CAGE_multi.msmr`)
+      ) {
+        smr_cageMultiFile = `${pathToOutputDir}/step5_SMR/CAGE_multi.msmr`;
+      } else {
+        smr_cageMultiFile = `${pathToOutputDir}/step5_SMR/error_cage_multi.log`;
+      }
       const smr_cageMultiManhattanPlot = `${pathToOutputDir}/step5_SMR/CAGE_multi_manhattan.png`;
-      const smr_westraSMRFile = `${pathToOutputDir}/step5_SMR/Westra.smr`;
+
+      let smr_westraSMRFile;
+      if (await fileOrPathExists(`${pathToOutputDir}/step5_SMR/Westra.smr`)) {
+        smr_westraSMRFile = `${pathToOutputDir}/step5_SMR/Westra.smr`;
+      } else {
+        smr_westraSMRFile = `${pathToOutputDir}/step5_SMR/error_westra.log`;
+      }
+
       const smr_westraSMRManhattanPlot = `${pathToOutputDir}/step5_SMR/Westra_manhattan.png`;
-      const smr_westraTransFile = `${pathToOutputDir}/step5_SMR/Westra_trans.smr`;
-      const smr_westraMultiFile = `${pathToOutputDir}/step5_SMR/Westra_multi.msmr`;
+
+      let smr_westraTransFile;
+      if (
+        await fileOrPathExists(`${pathToOutputDir}/step5_SMR/Westra_trans.smr`)
+      ) {
+        smr_westraTransFile = `${pathToOutputDir}/step5_SMR/Westra_trans.smr`;
+      } else {
+        smr_westraTransFile = `${pathToOutputDir}/step5_SMR/error_westra_trans.log`;
+      }
+
+      let smr_westraMultiFile;
+      if (
+        await fileOrPathExists(`${pathToOutputDir}/step5_SMR/Westra_multi.msmr`)
+      ) {
+        smr_westraMultiFile = `${pathToOutputDir}/step5_SMR/Westra_multi.msmr`;
+      } else {
+        smr_westraMultiFile = `${pathToOutputDir}/step5_SMR/error_westra_multi.log`;
+      }
+
       const smr_westraMultiManhattanPlot = `${pathToOutputDir}/step5_SMR/Westra_multi_manhattan.png`;
-      const smr_tissueSMRFile = `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}.smr`;
+
+      let smr_tissueSMRFile;
+      if (
+        await fileOrPathExists(
+          `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}.smr`,
+        )
+      ) {
+        smr_tissueSMRFile = `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}.smr`;
+      } else {
+        smr_tissueSMRFile = `${pathToOutputDir}/step5_SMR/error_tissue.log`;
+      }
       const smr_tissueSMRManhattanPlot = `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_manhattan.png`;
-      const smr_tissueTransFile = `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_trans.smr`;
-      const smr_tissueMultiFile = `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_multi.msmr`;
+
+      let smr_tissueTransFile;
+      if (
+        await fileOrPathExists(
+          `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_trans.smr`,
+        )
+      ) {
+        smr_tissueTransFile = `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_trans.smr`;
+      } else {
+        smr_tissueTransFile = `${pathToOutputDir}/step5_SMR/error_tissue_trans.log`;
+      }
+
+      let smr_tissueMultiFile;
+      if (
+        await fileOrPathExists(
+          `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_multi.msmr`,
+        )
+      ) {
+        smr_tissueMultiFile = `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_multi.msmr`;
+      } else {
+        smr_tissueMultiFile = `${pathToOutputDir}/step5_SMR/error_tissue_multi.log`;
+      }
       const smr_tissueMultiManhattanPlot = `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_multi_manhattan.png`;
+
       const delet_outputFile = `${pathToOutputDir}/step6_deleteriousness/deleteriousness_output.hg19_multianno_full.tsv`;
       const delet_exon_plot = `${pathToOutputDir}/step6_deleteriousness/exon_plot.jpg`;
       const annot_outputFile = `${pathToOutputDir}/step7_annotations/annotation_output.hg19_multianno_full.tsv`;

@@ -202,211 +202,211 @@ export default async (job: SandboxedJob) => {
   const error_msg = jobSpawn?.stderr?.toString();
   console.log(error_msg);
 
-  let clump_ResultsFile = await fileOrPathExists(
-    `${pathToOutputDir}/step1_clump/clumped.results`,
-  );
-
-  let coloc_ResultsFile = await fileOrPathExists(
-    `${pathToOutputDir}/step2_colocFinemapp/finemapping.txt`,
-  );
-
-  let pascal_geneScoresFile = await fileOrPathExists(
-    `${pathToOutputDir}/step3_pascal/pascal_genescores.txt`,
-  );
-
-  let pascal_pathwaySetFile = true;
-  let pascal_fusionGenesFile = true;
-
-  if (parameters.pascal_runpathway === OnOffOptions.ON) {
-    pascal_pathwaySetFile = await fileOrPathExists(
-      `${pathToOutputDir}/step3_pascal/pascal_pathway.txt`,
-    );
-
-    pascal_fusionGenesFile = await fileOrPathExists(
-      `${pathToOutputDir}/step3_pascal/pascal_fusion.txt`,
-    );
-  }
-
-  const emagma_genes_out = await fileOrPathExists(
-    `${pathToOutputDir}/step4_eMAGMA/gene_set.genes.out`,
-  );
-
-  const emagma_manhattan_plot = await fileOrPathExists(
-    `${pathToOutputDir}/step4_eMAGMA/manhattan.png`,
-  );
-
-  let emagma_tissue_genes_out = true;
-
-  if (String(parameters.emagma_tissues) !== '') {
-    emagma_tissue_genes_out = await fileOrPathExists(
-      `${pathToOutputDir}/step4_eMAGMA/gene_set.${parameters.emagma_tissues}.genes.out`,
-    );
-  }
-
-  let smr_cageSMRFile = true;
-  let smr_cageTransFile = true;
-  let smr_cageMultiFile = true;
-  let smr_cageSMRManhattanPlot = true;
-  let smr_cageMultiManhattanPlot = true;
-
-  if (parameters.smr_cage_eqtl === 'true') {
-    smr_cageSMRFile = await fileOrPathExists(
-      `${pathToOutputDir}/step5_SMR/CAGE.smr`,
-    );
-    smr_cageSMRManhattanPlot = await fileOrPathExists(
-      `${pathToOutputDir}/step5_SMR/CAGE_manhattan.png`,
-    );
-
-    if (parameters.smr_trans === OnOffOptions.ON) {
-      smr_cageTransFile = await fileOrPathExists(
-        `${pathToOutputDir}/step5_SMR/CAGE_trans.smr`,
-      );
-    }
-    if (parameters.smr_smr_multi === OnOffOptions.ON) {
-      smr_cageMultiFile = await fileOrPathExists(
-        `${pathToOutputDir}/step5_SMR/CAGE_multi.msmr`,
-      );
-      smr_cageMultiManhattanPlot = await fileOrPathExists(
-        `${pathToOutputDir}/step5_SMR/CAGE_multi_manhattan.png`,
-      );
-    }
-  }
-
-  let smr_westraSMRFile = true;
-  let smr_westraTransFile = true;
-  let smr_westraMultiFile = true;
-  let smr_westraSMRManhattanPlot = true;
-  let smr_westraMultiManhattanPlot = true;
-
-  if (parameters.smr_westra_eqtl === 'true') {
-    smr_westraSMRFile = await fileOrPathExists(
-      `${pathToOutputDir}/step5_SMR/Westra.smr`,
-    );
-    smr_westraSMRManhattanPlot = await fileOrPathExists(
-      `${pathToOutputDir}/step5_SMR/Westra_manhattan.png`,
-    );
-
-    if (parameters.smr_trans === OnOffOptions.ON) {
-      smr_westraTransFile = await fileOrPathExists(
-        `${pathToOutputDir}/step5_SMR/Westra_trans.smr`,
-      );
-    }
-    if (parameters.smr_smr_multi === OnOffOptions.ON) {
-      smr_westraMultiFile = await fileOrPathExists(
-        `${pathToOutputDir}/step5_SMR/Westra_multi.msmr`,
-      );
-      smr_westraMultiManhattanPlot = await fileOrPathExists(
-        `${pathToOutputDir}/step5_SMR/Westra_multi_manhattan.png`,
-      );
-    }
-  }
-
-  let smr_tissueSMRFile = true;
-  let smr_tissueTransFile = true;
-  let smr_tissueMultiFile = true;
-  let smr_tissueSMRManhattanPlot = true;
-  let smr_tissueMultiManhattanPlot = true;
-
-  if (parameters.smr_gtex_tissue) {
-    smr_tissueSMRFile = await fileOrPathExists(
-      `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}.smr`,
-    );
-    smr_tissueSMRManhattanPlot = await fileOrPathExists(
-      `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_manhattan.png`,
-    );
-    if (parameters.smr_trans === OnOffOptions.ON) {
-      smr_tissueTransFile = await fileOrPathExists(
-        `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_trans.smr`,
-      );
-    }
-    if (parameters.smr_smr_multi === OnOffOptions.ON) {
-      smr_tissueMultiFile = await fileOrPathExists(
-        `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_multi.msmr`,
-      );
-      smr_tissueMultiManhattanPlot = await fileOrPathExists(
-        `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_multi_manhattan.png`,
-      );
-    }
-  }
-
-  const delet_outputFile = await fileOrPathExists(
-    `${pathToOutputDir}/step6_deleteriousness/deleteriousness_output.hg19_multianno_full.tsv`,
-  );
-
-  const delet_exon_plot = await fileOrPathExists(
-    `${pathToOutputDir}/step6_deleteriousness/exon_plot.jpg`,
-  );
-
-  const annot_outputFile = await fileOrPathExists(
-    `${pathToOutputDir}/step7_annotations/annotation_output.hg19_multianno_full.tsv`,
-  );
-
-  let annot_disgenet = true;
-
-  if (parameters.annot_disgenet) {
-    annot_disgenet = false;
-    annot_disgenet = await fileOrPathExists(
-      `${pathToOutputDir}/step7_annotations/disgenet.txt`,
-    );
-  }
-
-  const annot_snp_plot = await fileOrPathExists(
-    `${pathToOutputDir}/step7_annotations/snp_plot.jpg`,
-  );
-
-  const annot_exon_plot = await fileOrPathExists(
-    `${pathToOutputDir}/step7_annotations/exon_plot.jpg`,
-  );
-
-  // const haplor_ResultsFile = await fileOrPathExists(
-  //   `${pathToOutputDir}/step8_HaploR/results_haploR.txt`,
+  // let clump_ResultsFile = await fileOrPathExists(
+  //   `${pathToOutputDir}/step1_clump/clumped.results`,
   // );
+  //
+  // let coloc_ResultsFile = await fileOrPathExists(
+  //   `${pathToOutputDir}/step2_colocFinemapp/finemapping.txt`,
+  // );
+  //
+  // let pascal_geneScoresFile = await fileOrPathExists(
+  //   `${pathToOutputDir}/step3_pascal/pascal_genescores.txt`,
+  // );
+  //
+  // let pascal_pathwaySetFile = true;
+  // let pascal_fusionGenesFile = true;
+  //
+  // if (parameters.pascal_runpathway === OnOffOptions.ON) {
+  //   pascal_pathwaySetFile = await fileOrPathExists(
+  //     `${pathToOutputDir}/step3_pascal/pascal_pathway.txt`,
+  //   );
+  //
+  //   pascal_fusionGenesFile = await fileOrPathExists(
+  //     `${pathToOutputDir}/step3_pascal/pascal_fusion.txt`,
+  //   );
+  // }
+  //
+  // const emagma_genes_out = await fileOrPathExists(
+  //   `${pathToOutputDir}/step4_eMAGMA/gene_set.genes.out`,
+  // );
+  //
+  // const emagma_manhattan_plot = await fileOrPathExists(
+  //   `${pathToOutputDir}/step4_eMAGMA/manhattan.png`,
+  // );
+  //
+  // let emagma_tissue_genes_out = true;
+  //
+  // if (String(parameters.emagma_tissues) !== '') {
+  //   emagma_tissue_genes_out = await fileOrPathExists(
+  //     `${pathToOutputDir}/step4_eMAGMA/gene_set.${parameters.emagma_tissues}.genes.out`,
+  //   );
+  // }
+  //
+  // let smr_cageSMRFile = true;
+  // let smr_cageTransFile = true;
+  // let smr_cageMultiFile = true;
+  // let smr_cageSMRManhattanPlot = true;
+  // let smr_cageMultiManhattanPlot = true;
+  //
+  // if (parameters.smr_cage_eqtl === 'true') {
+  //   smr_cageSMRFile = await fileOrPathExists(
+  //     `${pathToOutputDir}/step5_SMR/CAGE.smr`,
+  //   );
+  //   smr_cageSMRManhattanPlot = await fileOrPathExists(
+  //     `${pathToOutputDir}/step5_SMR/CAGE_manhattan.png`,
+  //   );
+  //
+  //   if (parameters.smr_trans === OnOffOptions.ON) {
+  //     smr_cageTransFile = await fileOrPathExists(
+  //       `${pathToOutputDir}/step5_SMR/CAGE_trans.smr`,
+  //     );
+  //   }
+  //   if (parameters.smr_smr_multi === OnOffOptions.ON) {
+  //     smr_cageMultiFile = await fileOrPathExists(
+  //       `${pathToOutputDir}/step5_SMR/CAGE_multi.msmr`,
+  //     );
+  //     smr_cageMultiManhattanPlot = await fileOrPathExists(
+  //       `${pathToOutputDir}/step5_SMR/CAGE_multi_manhattan.png`,
+  //     );
+  //   }
+  // }
+  //
+  // let smr_westraSMRFile = true;
+  // let smr_westraTransFile = true;
+  // let smr_westraMultiFile = true;
+  // let smr_westraSMRManhattanPlot = true;
+  // let smr_westraMultiManhattanPlot = true;
+  //
+  // if (parameters.smr_westra_eqtl === 'true') {
+  //   smr_westraSMRFile = await fileOrPathExists(
+  //     `${pathToOutputDir}/step5_SMR/Westra.smr`,
+  //   );
+  //   smr_westraSMRManhattanPlot = await fileOrPathExists(
+  //     `${pathToOutputDir}/step5_SMR/Westra_manhattan.png`,
+  //   );
+  //
+  //   if (parameters.smr_trans === OnOffOptions.ON) {
+  //     smr_westraTransFile = await fileOrPathExists(
+  //       `${pathToOutputDir}/step5_SMR/Westra_trans.smr`,
+  //     );
+  //   }
+  //   if (parameters.smr_smr_multi === OnOffOptions.ON) {
+  //     smr_westraMultiFile = await fileOrPathExists(
+  //       `${pathToOutputDir}/step5_SMR/Westra_multi.msmr`,
+  //     );
+  //     smr_westraMultiManhattanPlot = await fileOrPathExists(
+  //       `${pathToOutputDir}/step5_SMR/Westra_multi_manhattan.png`,
+  //     );
+  //   }
+  // }
+  //
+  // let smr_tissueSMRFile = true;
+  // let smr_tissueTransFile = true;
+  // let smr_tissueMultiFile = true;
+  // let smr_tissueSMRManhattanPlot = true;
+  // let smr_tissueMultiManhattanPlot = true;
+  //
+  // if (parameters.smr_gtex_tissue) {
+  //   smr_tissueSMRFile = await fileOrPathExists(
+  //     `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}.smr`,
+  //   );
+  //   smr_tissueSMRManhattanPlot = await fileOrPathExists(
+  //     `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_manhattan.png`,
+  //   );
+  //   if (parameters.smr_trans === OnOffOptions.ON) {
+  //     smr_tissueTransFile = await fileOrPathExists(
+  //       `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_trans.smr`,
+  //     );
+  //   }
+  //   if (parameters.smr_smr_multi === OnOffOptions.ON) {
+  //     smr_tissueMultiFile = await fileOrPathExists(
+  //       `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_multi.msmr`,
+  //     );
+  //     smr_tissueMultiManhattanPlot = await fileOrPathExists(
+  //       `${pathToOutputDir}/step5_SMR/${parameters.smr_gtex_tissue}_multi_manhattan.png`,
+  //     );
+  //   }
+  // }
+  //
+  // const delet_outputFile = await fileOrPathExists(
+  //   `${pathToOutputDir}/step6_deleteriousness/deleteriousness_output.hg19_multianno_full.tsv`,
+  // );
+  //
+  // const delet_exon_plot = await fileOrPathExists(
+  //   `${pathToOutputDir}/step6_deleteriousness/exon_plot.jpg`,
+  // );
+  //
+  // const annot_outputFile = await fileOrPathExists(
+  //   `${pathToOutputDir}/step7_annotations/annotation_output.hg19_multianno_full.tsv`,
+  // );
+  //
+  // let annot_disgenet = true;
+  //
+  // if (parameters.annot_disgenet) {
+  //   annot_disgenet = false;
+  //   annot_disgenet = await fileOrPathExists(
+  //     `${pathToOutputDir}/step7_annotations/disgenet.txt`,
+  //   );
+  // }
+  //
+  // const annot_snp_plot = await fileOrPathExists(
+  //   `${pathToOutputDir}/step7_annotations/snp_plot.jpg`,
+  // );
+  //
+  // const annot_exon_plot = await fileOrPathExists(
+  //   `${pathToOutputDir}/step7_annotations/exon_plot.jpg`,
+  // );
+  //
+  // // const haplor_ResultsFile = await fileOrPathExists(
+  // //   `${pathToOutputDir}/step8_HaploR/results_haploR.txt`,
+  // // );
+  //
+  // //close database connection
+  // closeDB();
+  //
+  // const results = [
+  //   clump_ResultsFile,
+  //   coloc_ResultsFile,
+  //   pascal_geneScoresFile,
+  //   pascal_pathwaySetFile,
+  //   pascal_fusionGenesFile,
+  //   emagma_genes_out,
+  //   emagma_manhattan_plot,
+  //   emagma_tissue_genes_out,
+  //   smr_cageSMRFile,
+  //   smr_cageTransFile,
+  //   smr_cageMultiFile,
+  //   smr_cageSMRManhattanPlot,
+  //   smr_cageMultiManhattanPlot,
+  //   smr_westraSMRFile,
+  //   smr_westraTransFile,
+  //   smr_westraMultiFile,
+  //   smr_westraSMRManhattanPlot,
+  //   smr_westraMultiManhattanPlot,
+  //   smr_tissueSMRFile,
+  //   smr_tissueTransFile,
+  //   smr_tissueMultiFile,
+  //   smr_tissueSMRManhattanPlot,
+  //   smr_tissueMultiManhattanPlot,
+  //   delet_outputFile,
+  //   delet_exon_plot,
+  //   annot_outputFile,
+  //   annot_disgenet,
+  //   annot_snp_plot,
+  //   annot_exon_plot,
+  //   // haplor_ResultsFile,
+  // ];
+  //
+  // console.log(results);
+  //
+  // const answer = results.some((element) => element === false);
 
-  //close database connection
-  closeDB();
-
-  const results = [
-    clump_ResultsFile,
-    coloc_ResultsFile,
-    pascal_geneScoresFile,
-    pascal_pathwaySetFile,
-    pascal_fusionGenesFile,
-    emagma_genes_out,
-    emagma_manhattan_plot,
-    emagma_tissue_genes_out,
-    smr_cageSMRFile,
-    smr_cageTransFile,
-    smr_cageMultiFile,
-    smr_cageSMRManhattanPlot,
-    smr_cageMultiManhattanPlot,
-    smr_westraSMRFile,
-    smr_westraTransFile,
-    smr_westraMultiFile,
-    smr_westraSMRManhattanPlot,
-    smr_westraMultiManhattanPlot,
-    smr_tissueSMRFile,
-    smr_tissueTransFile,
-    smr_tissueMultiFile,
-    smr_tissueSMRManhattanPlot,
-    smr_tissueMultiManhattanPlot,
-    delet_outputFile,
-    delet_exon_plot,
-    annot_outputFile,
-    annot_disgenet,
-    annot_snp_plot,
-    annot_exon_plot,
-    // haplor_ResultsFile,
-  ];
-
-  console.log(results);
-
-  const answer = results.some((element) => element === false);
-
-  if (answer) {
-    throw new Error(error_msg || 'Job failed to successfully complete');
-  } else {
-    return true;
-  }
+  // if (answer) {
+  //   throw new Error(error_msg || 'Job failed to successfully complete');
+  // } else {
+  //   return true;
+  // }
 
   return true;
 };
